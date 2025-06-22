@@ -121,7 +121,7 @@ Row::build(const psc::mem::active_ptr<Row>& prev, float z, float min, float step
             }
         }
         preVal /= 5.0f;
-        float yp = preVal + (static_cast<float>(drand48()) - (preVal / (MAX_Y))) * 0.5f;
+        float yp = preVal + (static_cast<float>(drand48()) - (preVal / (MAX_Y))) * 4.5f;
         yp = std::min(yp, MAX_Y);
         yp = std::max(yp, MIN_Y);
         float zp = 0.0f;

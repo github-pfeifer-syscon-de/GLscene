@@ -1,8 +1,10 @@
-This is some shader experiments.
+This is some shader experiment.
+
+![glscene](glscene.png "glscene")
 
 It may serve as a testbed to vary some shaders obtained from:
 https://www.shadertoy.com/
-The outline is ruffly :
+The outline is :
 1. place the shader source in res
 4. the name for the function needs to be main (without parameters)
      ... the rest changes may vary but use e.g. waveshader.glsl vs. source as example
