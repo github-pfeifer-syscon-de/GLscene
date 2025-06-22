@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <code-assistance-data xmlns="http://www.netbeans.org/ns/make-project-private/1">
+        <code-model-enabled>true</code-model-enabled>
+    </code-assistance-data>
+    <data xmlns="http://www.netbeans.org/ns/make-project-private/1">
+        <activeConfTypeElem>0</activeConfTypeElem>
+        <activeConfIndexElem>0</activeConfIndexElem>
+    </data>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group name="GLscene">
+            <file>file:/home/rpf/csrc/GLscene/src/Row.hpp</file>
+            <file>file:/home/rpf/csrc/GLscene/res/smoke-vertex.glsl</file>
+            <file>file:/home/rpf/csrc/GLscene/Makefile.am</file>
+            <file>file:/home/rpf/csrc/GLscene/src/Makefile.am</file>
+            <file>file:/home/rpf/csrc/GLscene/src/PlaneContext.hpp</file>
+            <file>file:/home/rpf/csrc/GLscene/src/Row.cpp</file>
+            <file>file:/home/rpf/csrc/GLscene/src/TextContext.cpp</file>
+            <file>file:/home/rpf/csrc/GLscene/src/GlSceneApp.hpp</file>
+            <file>file:/home/rpf/csrc/GLscene/res/smoke-fragment.glsl</file>
+            <file>file:/home/rpf/csrc/GLscene/src/GlPlaneView.cpp</file>
+            <file>file:/home/rpf/csrc/GLscene/src/PlaneGeometry.hpp</file>
+            <file>file:/home/rpf/csrc/GLscene/res/smoke-fragment-static.glsl</file>
+            <file>file:/home/rpf/csrc/GLscene/src/GlSceneWindow.cpp</file>
+            <file>file:/home/rpf/csrc/GLscene/src/GlPlaneView.hpp</file>
+            <file>file:/home/rpf/csrc/GLscene/src/PlaneGeometry.cpp</file>
+            <file>file:/home/rpf/csrc/GLscene/res/Makefile.am</file>
+            <file>file:/home/rpf/csrc/GLscene/src/GlSceneWindow.hpp</file>
+            <file>file:/home/rpf/csrc/GLscene/configure.ac</file>
+            <file>file:/home/rpf/csrc/GLscene/src/SmokeContext.cpp</file>
+        </group>
+        <group name="csrc.git_testing">
+            <file>file:/home/rpf/csrc.git/GLscene/res/vertex.glsl</file>
+            <file>file:/home/rpf/csrc.git/GLscene/res/waveshader.glsl</file>
+            <file>file:/home/rpf/csrc.git/GLscene/res/glscene.desktop</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/SmokeContext.cpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/GlPlaneView.cpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/GlPlaneView.hpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/res/smoke-fragment.glsl</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/Bump.hpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/Bump.cpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/res/app-menu.ui</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/SmokeContext.hpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/res/glsceneapp.gresource.xml</file>
+            <file>file:/home/rpf/csrc.git/GLscene/README.md</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/PlaneContext.hpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/Row.cpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/GlSceneApp.cpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/PlaneContext.cpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/Row.hpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/PlaneGeometry.hpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/configure.ac</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/GlSceneApp.hpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/PlaneGeometry.cpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/GlSceneWindow.cpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/GlSceneWindow.hpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/res/Makefile.am</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/TextContext.cpp</file>
+            <file>file:/home/rpf/csrc.git/GLscene/src/TextContext.hpp</file>
+        </group>
+    </open-files>
+</project-private>

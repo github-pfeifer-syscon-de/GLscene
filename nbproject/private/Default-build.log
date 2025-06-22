@@ -1,0 +1,73 @@
+/usr/bin/make  all-recursive
+make[1]: Entering directory '/home/rpf/csrc/GLscene'
+Making all in res
+make[2]: Entering directory '/home/rpf/csrc/GLscene/res'
+sed -e "s,\@APP_ICON\@,/usr/local/share/icons/hicolor/64x64/apps/glscene.png,g" glscene.desktop.in > glscene.desktop
+make[2]: Leaving directory '/home/rpf/csrc/GLscene/res'
+Making all in src
+make[2]: Entering directory '/home/rpf/csrc/GLscene/src'
+  CC       resources.o
+  CXX      Bump.o
+  CXX      GlPlaneView.o
+In file included from GlPlaneView.cpp:30:
+GlPlaneView.hpp: In constructor ‘GlPlaneView::GlPlaneView()’:
+GlPlaneView.hpp:57:18: warning: ‘GlPlaneView::m_smokePlane’ will be initialized after [-Wreorder]
+   57 |     Geometry    *m_smokePlane;
+      |                  ^~~~~~~~~~~~
+GlPlaneView.hpp:51:11: warning:   ‘Text* GlPlaneView::m_text’ [-Wreorder]
+   51 |     Text *m_text;
+      |           ^~~~~~
+GlPlaneView.cpp:33:1: warning:   when initialized here [-Wreorder]
+   33 | GlPlaneView::GlPlaneView()
+      | ^~~~~~~~~~~
+GlPlaneView.cpp: In member function ‘virtual gboolean GlPlaneView::init_shaders(Glib::Error&)’:
+GlPlaneView.cpp:87:24: warning: catching polymorphic type ‘class Glib::Error’ by value [-Wcatch-value=]
+   87 |     catch (Glib::Error err) {
+      |                        ^~~
+  CXX      GlSceneWindow.o
+  CXX      PlaneContext.o
+  CXX      PlaneGeometry.o
+In file included from PlaneGeometry.cpp:20:
+PlaneGeometry.hpp: In constructor ‘PlaneGeometry::PlaneGeometry(PlaneContext*)’:
+PlaneGeometry.hpp:42:19: warning: ‘PlaneGeometry::ctx’ will be initialized after [-Wreorder]
+   42 |     PlaneContext *ctx;
+      |                   ^~~
+PlaneGeometry.hpp:39:18: warning:   ‘unsigned int PlaneGeometry::n’ [-Wreorder]
+   39 |     unsigned int n;
+      |                  ^
+PlaneGeometry.cpp:24:1: warning:   when initialized here [-Wreorder]
+   24 | PlaneGeometry::PlaneGeometry(PlaneContext *_ctx)
+      | ^~~~~~~~~~~~~
+PlaneGeometry.cpp: In member function ‘void PlaneGeometry::advance()’:
+PlaneGeometry.cpp:60:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   60 |     for (int z = 0; z < n; ++z) {
+      |                     ~~^~~
+PlaneGeometry.cpp: In member function ‘void PlaneGeometry::build()’:
+PlaneGeometry.cpp:83:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   83 |     for (int z = 0; z < n; ++z) {
+      |                     ~~^~~
+  CXX      TextContext.o
+  CXX      GlSceneApp.o
+  CXX      SmokeContext.o
+  CXX      Row.o
+Row.cpp: In member function ‘void Row::build(Row*, float, float, float)’:
+Row.cpp:46:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   46 |     for (int x = 0; x < n; ++x) {
+      |                     ~~^~~
+Row.cpp:57:27: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   57 |         for (int x = 0; x < n; ++x) {
+      |                         ~~^~~
+Row.cpp:63:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   63 |     for (int x = 0; x < n; ++x) {
+      |                     ~~^~~
+Row.cpp:71:15: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   71 |         if (x < n-1) {
+      |             ~~^~~~~
+Row.cpp:76:27: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   76 |         for (int x = 1; x < n; ++x) {
+      |                         ~~^~~
+  CXXLD    glscene
+make[2]: Leaving directory '/home/rpf/csrc/GLscene/src'
+make[2]: Entering directory '/home/rpf/csrc/GLscene'
+make[2]: Leaving directory '/home/rpf/csrc/GLscene'
+make[1]: Leaving directory '/home/rpf/csrc/GLscene'

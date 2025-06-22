@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/de/pfeifer_syscon/glscene">
+    <file preprocess="xml-stripblanks">app-menu.ui</file>
+    <file>vertex.glsl</file>
+    <file>fragment.glsl</file>
+    <file>smoke-vertex.glsl</file>
+    <file>smoke-fragment.glsl</file>
+    <file>waveshader.glsl</file>
+    <file>glscene.png</file>
+  </gresource>
+</gresources>

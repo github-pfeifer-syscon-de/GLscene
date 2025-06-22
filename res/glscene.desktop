@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Version=0.1
+Name=GlScene
+Comment=Fancy desktop scene
+Categories=Application;Utility;
+Exec=glscene
+Icon=glscene
