@@ -97,8 +97,6 @@ Row::build(const psc::mem::active_ptr<Row>& prev, float z, float min, float step
     setScalePos(PlaneGeometry::X_OFFS, 0.0f, z, 1.0f);
 
     Color color(0.15f, 1.0f, 0.15f);
-	//int i = (lrand48() % m_n);
-	//float h = (drand48() * 4.5f);
     auto lPrev = prev.lease();
     for (uint32_t x = 0; x < m_n; ++x) {
         float xp = getXat(x, step);
@@ -121,7 +119,7 @@ Row::build(const psc::mem::active_ptr<Row>& prev, float z, float min, float step
             }
         }
         preVal /= 5.0f;
-        float yp = preVal + (static_cast<float>(drand48()) - (preVal / (MAX_Y))) * 4.5f;
+        float yp = preVal + (static_cast<float>(drand48()) - (preVal / (MAX_Y))) * 2.0f;
         yp = std::min(yp, MAX_Y);
         yp = std::max(yp, MIN_Y);
         float zp = 0.0f;

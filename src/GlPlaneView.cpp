@@ -26,12 +26,12 @@
 #include <GL/glu.h>
 #include <cmath>
 
+#include "Row.hpp"
 #include "GlPlaneView.hpp"
 #include "PlaneGeometry.hpp"
 
 GlPlaneView::GlPlaneView(Gtk::Application* application)
 : Scene()
-
 , m_application{application}
 {
 }
@@ -55,7 +55,7 @@ GlPlaneView::getInitalAngleDegree()
 
 guint32 GlPlaneView::getAnimationMs()
 {
-    return 1000/15;
+    return 1000/20;
 }
 
 
@@ -178,49 +178,68 @@ GlPlaneView::unrealize()
 void
 GlPlaneView::draw(Gtk::GLArea *glArea, Matrix &proj, Matrix &view)
 {
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     psc::gl::checkError("clear");
 
     m_planeContext->use();
     psc::gl::checkError("useProgram");
-    m_planePane->advance();
+    gint64 time = g_get_monotonic_time();    // the promise is this does not get screwed up by time adjustments
+    m_planePane->advance(time);
     psc::gl::checkError("advance");
 
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    //checkError("glBlendFunc");
-    //glEnable(GL_BLEND);
-    //checkError("glEnable(GL_BLEND)");
-    //glDisable(GL_DEPTH_TEST);
-    //checkError("glDisable(GL_DEPTH_TEST)");
+    if (USE_TRANSPARENCY) {
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        psc::gl::checkError("glBlendFunc");
+        glEnable(GL_BLEND);
+        psc::gl::checkError("glEnable(GL_BLEND)");
+        //glDisable(GL_DEPTH_TEST);
+        //psc::gl::checkError("glDisable(GL_DEPTH_TEST)");
+    }
 
     UV uv(glArea->get_width(), glArea->get_height());
     m_planeContext->setResolution(uv);
-    GLfloat lineWidth = 3;
+    GLfloat lineWidth = 3.0f;
     m_planeContext->setLineWidth(lineWidth);
     glLineWidth(lineWidth);
+    m_planeContext->setAlpha(1.0f);
     Matrix projView = proj * view;
-    m_planeContext->display(projView);
+    auto midRows = m_planePane->getMidRows();
+    m_planeContext->display(projView, midRows);
     psc::gl::checkError("display plane");
+    m_planeContext->setAlpha(m_planePane->getFrontAlpha());
+    std::list<psc::mem::active_ptr<psc::gl::Geom2>> front;
+    front.push_back(m_planePane->getFrontRow());
+    m_planeContext->display(projView, front);
+    m_planeContext->setAlpha(m_planePane->getBackAlpha());
+    std::list<psc::mem::active_ptr<psc::gl::Geom2>> back;
+    back.push_back(m_planePane->getBackRow());
+    m_planeContext->display(projView, back);
     m_planeContext->unuse();
-    //glDisable(GL_BLEND);
-    //checkError("glDisable(GL_BLEND)");
-    //glEnable(GL_DEPTH_TEST);
-    //checkError("glEnable(GL_DEPTH_TEST)");
+    if (USE_TRANSPARENCY) { // and back to "normal"
+        glBlendFunc(GL_ONE, GL_ZERO);
+        glDisable(GL_BLEND);
+        //glEnable(GL_DEPTH_TEST);
+    }
 
+
+    if (false) {
     m_smokeContext->use();
     psc::gl::checkError("useSmokeCtx");
 
     // UV res(0.02f, 0.02f); // fits smoke
     UV res(1.0f, 1.0f);   // fits wave
     m_smokeContext->setResolution(res);
-    gint64 time = g_get_monotonic_time();    // the promise is this does not get screwed up by time adjustments
-    float t = (float)((double)time/3.0E6);
     //std::cout << "t: " << t << std::endl;
+    float t = (float)((double)time/3.0E6);
     m_smokeContext->setTime(t);
 
     m_smokeContext->display(projView);
     m_smokeContext->unuse();
+    }
+    //gint64 end = g_get_monotonic_time();
+    //std::cout << "display " << (end-start) << std::endl;
+    //Glib::DateTime dt = Glib::DateTime::create_now_local();
+    //std::cout << "Time " << dt.format_iso8601() << std::endl;
 }
 
 

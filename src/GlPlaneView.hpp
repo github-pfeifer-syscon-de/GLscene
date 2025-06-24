@@ -43,7 +43,7 @@ public:
     void draw(Gtk::GLArea *glArea, Matrix &proj, Matrix &view) override;
      psc::gl::aptrGeom2 on_click_select(GdkEventButton* event, float mx, float my) override;
 protected:
-
+    static constexpr auto USE_TRANSPARENCY{true};
 private:
     NaviGlArea *m_naviGlArea;
     PlaneContext* m_planeContext{};

@@ -30,10 +30,12 @@ public:
     bool useUV() override;
     void setResolution(UV &uv);
     void setLineWidth(float lineWidth);
+    void setAlpha(float alpha);
 
     void updateLocation() override;
 private:
-    GLint m_screen;
-    GLint m_lineWidth;
+    GLint m_screen{};
+    GLint m_lineWidth{};
+    GLint m_alpha{};
 };
 

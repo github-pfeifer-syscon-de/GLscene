@@ -21,8 +21,6 @@
 
 PlaneContext::PlaneContext()
 : NaviContext()
-, m_screen(0)
-, m_lineWidth(0)
 {
 }
 
@@ -35,19 +33,27 @@ void
 PlaneContext::updateLocation()
 {
     m_screen = glGetUniformLocation(m_program, "screen");
-
     m_lineWidth = glGetUniformLocation(m_program, "lineWidth");
+    m_alpha = glGetUniformLocation(m_program, "alpha");
     NaviContext::updateLocation();
 }
 
-void PlaneContext::setResolution(UV &uv)
+void
+PlaneContext::setResolution(UV &uv)
 {
     glUniform2fv(m_screen, 1, &uv[0]);
 }
 
-void PlaneContext::setLineWidth(float lineWidth)
+void
+PlaneContext::setLineWidth(float lineWidth)
 {
     glUniform1f(m_lineWidth, lineWidth);
+}
+
+void
+PlaneContext::setAlpha(float alpha)
+{
+    glUniform1f(m_alpha, alpha);
 }
 
 bool
@@ -59,11 +65,11 @@ PlaneContext::useNormal()
 bool
 PlaneContext::useColor()
 {
-    return true;   // FALSE
+    return true;
 }
 
 bool
 PlaneContext::useUV()
 {
-    return false;   // TRUE
+    return false;
 }

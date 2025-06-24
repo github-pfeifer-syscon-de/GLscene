@@ -28,14 +28,19 @@
 class PlaneGeometry  {
 public:
     PlaneGeometry(PlaneContext *_ctx);
-    virtual ~PlaneGeometry();
+    virtual ~PlaneGeometry() = default;
     float getStep();
     void build();
-    void advance();
+    void advance(gint64 time);
+    psc::mem::active_ptr<Row> getFrontRow();
+    std::list<psc::gl::aptrGeom2> getMidRows();
+    psc::mem::active_ptr<Row> getBackRow();
+    float getFrontAlpha();
+    float getBackAlpha();
     static constexpr auto PLANE_TILES{20u};   // was 40
     static constexpr auto Z_MIN{-10.0f};
     static constexpr auto Z_MAX{10.0f};
-    static constexpr auto X_OFFS{15.0f};     // use 0.0f for ceneted
+    static constexpr auto X_OFFS{0.0f};     // 15.0fuse 0.0f for ceneted
     static constexpr auto STEP{(Z_MAX-Z_MIN) / static_cast<float>(PLANE_TILES-1)};
     static constexpr auto TIMESCALE{1000l};
 protected:
@@ -44,5 +49,9 @@ private:
     PlaneContext *ctx;
     std::list<psc::mem::active_ptr<Row>> rows;
     int32_t lastms;
+    psc::mem::active_ptr<Row> m_frontRow;
+    psc::mem::active_ptr<Row> m_backRow;
+    float m_frontAlpha;
+    float m_backAlpha;
 };
 

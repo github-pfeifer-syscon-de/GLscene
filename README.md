@@ -12,6 +12,6 @@ The outline is :
 3. in GlPlaneView::init_shaders ~ line 75 replace the name for the fragment-shader
 5. see how it works
 6. again in GlPlaneView::draw ~ line 215
-7.   ... at  UV res(1.0f, 1.0f) change the value to the nice scale
+7.   ... at  UV res(1.0f, 1.0f) change the value to a nice scale
 8.   ... at  float t = (float)((double)time/3.0E6);
 

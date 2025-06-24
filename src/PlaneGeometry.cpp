@@ -32,6 +32,7 @@
 //    /
 //   /front(rows)
 //  -Z
+//
 PlaneGeometry::PlaneGeometry(PlaneContext *_ctx)
 : ctx{_ctx}
 , lastms{}
@@ -40,35 +41,32 @@ PlaneGeometry::PlaneGeometry(PlaneContext *_ctx)
     build();
 }
 
-
-PlaneGeometry::~PlaneGeometry()
-{
-    //for (std::list<Row *>::iterator p = rows.begin(); p != rows.end(); ++p) {
-    //    Row *pRow = *p;
-    //    delete pRow;
-    //}
-    //rows.clear();
-}
-
 void
-PlaneGeometry::advance()
+PlaneGeometry::advance(gint64 time)
 {
-    gint64 time = g_get_monotonic_time();    // the promise is this does not get screwed up by time adjustments
     gint32 ms = (time / TIMESCALE) % TIMESCALE;
+    m_frontAlpha = static_cast<float>(TIMESCALE - ms) / TIMESCALE;
+    m_backAlpha = static_cast<float>(ms) / TIMESCALE;
+    //std::cout << "Font " << m_frontAlpha
+    //          << " back " << m_backAlpha << std::endl;
     float step = getStep();
     if (ms < lastms) {      // remove old row at back add new at front
-        auto pRow = rows.front();
-        pRow.resetAll();
+        m_frontRow = rows.front();
         rows.pop_front();
-        pRow = psc::mem::make_active<Row>(ctx, PLANE_TILES);
-        ctx->addGeometry(pRow);
+        rows.push_back(m_backRow);
+        auto pRow = psc::mem::make_active<Row>(ctx, PLANE_TILES);
         auto& last = rows.back();
         if (auto lRow = pRow.lease())  {
             lRow->build(last, Z_MAX-step, Z_MIN, step);
         }
-        rows.push_back(pRow);
+        m_backRow = pRow;
     }
     uint32_t z = PLANE_TILES-1;
+    if (auto lRow = m_frontRow.lease()) {
+        float zp = getZat(static_cast<float>(z) + (static_cast<float>(ms) / static_cast<float>(TIMESCALE)));
+        lRow->setScalePos(X_OFFS, 0.0f, zp, 1.0);
+    }
+    --z;
     for (auto& pRow : rows) {
         if (auto lRow = pRow.lease()) {
             float zp = getZat(static_cast<float>(z) + (static_cast<float>(ms) / static_cast<float>(TIMESCALE)));
@@ -76,7 +74,36 @@ PlaneGeometry::advance()
         }
         --z;
     }
+    if (auto lRow = m_backRow.lease()) {
+        float zp = getZat(static_cast<float>(z) + (static_cast<float>(ms) / static_cast<float>(TIMESCALE)));
+        lRow->setScalePos(X_OFFS, 0.0f, zp, 1.0);
+    }
     lastms = ms;
+}
+
+
+psc::mem::active_ptr<Row>
+PlaneGeometry::getFrontRow()
+{
+    return m_frontRow;
+}
+
+psc::mem::active_ptr<Row>
+PlaneGeometry::getBackRow()
+{
+    return m_backRow;
+}
+
+float
+PlaneGeometry::getFrontAlpha()
+{
+    return m_frontAlpha;
+}
+
+float
+PlaneGeometry::getBackAlpha()
+{
+    return m_backAlpha;
 }
 
 float
@@ -93,6 +120,16 @@ PlaneGeometry::getZat(float index)
     return z;
 }
 
+std::list<psc::gl::aptrGeom2>
+PlaneGeometry::getMidRows()
+{
+    std::list<psc::gl::aptrGeom2> list;
+    for (auto& row : rows) {
+        list.push_back(row);
+    }
+    return list;
+}
+
 void
 PlaneGeometry::build()
 {
@@ -101,11 +138,19 @@ PlaneGeometry::build()
     for (uint32_t z = 0; z < PLANE_TILES; ++z) {
         float zp = getZat(static_cast<float>(z));
         auto pRow = psc::mem::make_active<Row>(ctx, PLANE_TILES);
-        ctx->addGeometry(pRow);
+        if (z == 0) {
+            m_backRow = pRow;
+        }
+        else if (z == PLANE_TILES - 1) {
+            m_frontRow = pRow;
+        }
+        else {
+            //ctx->addGeometry(pRow);
+            rows.push_back(pRow);
+        }
         if (auto lRow = pRow.lease()) {
             lRow->build(last, zp, Z_MIN, step);
         }
-        rows.push_back(pRow);
         last = pRow;
     }
 }
