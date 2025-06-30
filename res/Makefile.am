@@ -21,7 +21,3 @@ appdir_icon=$(appicondir)/$(appicon_DATA)
 EXTRA_DIST = $(GLSCENE_RESOURCES) $(GLSCENE_RESOURCE_XML) $(desktop_in_files) $(appicon_DATA)
 
 clean-local:
-	-rm -rf $(desktop_DATA)
-
-%.desktop: %.desktop.in
-	@regex_cmd@ -e "s,\@APP_ICON\@,$(appdir_icon),g" $? > $@
