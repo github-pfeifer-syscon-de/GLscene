@@ -1,5 +1,6 @@
+/* -*- Mode: c++; c-basic-offset: 4; tab-width: 4 -*-  */
 /*
- * Copyright (C) 2018 rpf
+ * Copyright (C) 2025 RPf <gpl3@pfeifer-syscon.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,33 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include <KeyConfig.hpp>
+#include <iostream>
+#include <glibmm.h>
+#include <giomm.h>
+#include <memory>
 
-#include "GlPlaneView.hpp"
+class Pulse;
 
-
-class GlSceneApp;
-class GlPlaneView;
-class PlaneGeometry;
-
-class GlSceneWindow : public Gtk::ApplicationWindow {
+class TestApp
+: public Gio::Application
+{
 public:
-    GlSceneWindow(GlSceneApp* application);
-    virtual ~GlSceneWindow() ;
+    TestApp();
+    virtual ~TestApp() = default;
 
-    void on_action_preferences();
-    Gtk::Application* getApplicaiton();
-    PlaneGeometry* getPlaneGeometry();
-    std::shared_ptr<KeyConfig> getKeyConfig();
-    void saveConfig();
-    static constexpr auto MAIN_SECTION{"main"};
-    static constexpr auto SCALE_KEY{"scaleY"};
-private:
-    GlSceneApp* m_application;
-    GlPlaneView* m_planView{nullptr};
-    std::shared_ptr<KeyConfig> m_keyConfig;
+    void on_activate() override;
+    int getResult();
+protected:
+    void start(GMainContext* ctx);
+    std::shared_ptr<PulseIn> m_pulse;
 };
-

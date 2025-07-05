@@ -28,11 +28,12 @@
 #include "PlaneGeometry.hpp"
 #include "SmokeContext.hpp"
 
+class GlSceneWindow;
 
 class GlPlaneView
 : public Scene {
 public:
-    GlPlaneView(Gtk::Application* application);
+    GlPlaneView(GlSceneWindow* glSceneWindow);
     virtual ~GlPlaneView();
     Position getIntialPosition() override;
     Rotational getInitalAngleDegree() override;
@@ -41,7 +42,8 @@ public:
     void init(Gtk::GLArea *glArea) override;
     void unrealize() override;
     void draw(Gtk::GLArea *glArea, Matrix &proj, Matrix &view) override;
-     psc::gl::aptrGeom2 on_click_select(GdkEventButton* event, float mx, float my) override;
+    psc::gl::aptrGeom2 on_click_select(GdkEventButton* event, float mx, float my) override;
+    PlaneGeometry* getPlaneGeometry();
 protected:
     static constexpr auto USE_TRANSPARENCY{true};
 private:
@@ -57,4 +59,5 @@ private:
     SmokeContext* m_smokeContext{};
     psc::mem::active_ptr<psc::gl::Geom2> m_smokePlane;
     Gtk::Application* m_application;
+    GlSceneWindow* m_glSceneWindow;
 };

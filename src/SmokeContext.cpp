@@ -47,17 +47,17 @@ SmokeContext::setTime(float time)
 bool
 SmokeContext::useNormal()
 {
-    return FALSE;
+    return false;
 }
 
 bool
 SmokeContext::useColor()
 {
-    return FALSE;
+    return false;
 }
 
 bool
 SmokeContext::useUV()
 {
-    return TRUE;
+    return true;
 }

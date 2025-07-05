@@ -19,8 +19,7 @@
 
 #include "PlaneGeometry.hpp"
 #include "PlaneContext.hpp"
-
-
+#include "config.h"
 //
 //
 //     Y
@@ -44,38 +43,52 @@ PlaneGeometry::PlaneGeometry(PlaneContext *_ctx)
 void
 PlaneGeometry::advance(gint64 time)
 {
-    gint32 ms = (time / TIMESCALE) % TIMESCALE;
-    m_frontAlpha = static_cast<float>(TIMESCALE - ms) / TIMESCALE;
-    m_backAlpha = static_cast<float>(ms) / TIMESCALE;
-    //std::cout << "Font " << m_frontAlpha
-    //          << " back " << m_backAlpha << std::endl;
+    if (m_startTime == -1) {
+        m_startTime = time;
+    }
+    gint32 ms = static_cast<gint32>(((time - m_startTime) / TIMESCALE) % TIMESCALE);
+    m_frontAlpha = static_cast<float>(TIMESCALE - ms) / static_cast<float>(TIMESCALE);
+    m_backAlpha = static_cast<float>(ms) / static_cast<float>(TIMESCALE);
     float step = getStep();
-    if (ms < lastms) {      // remove old row at back add new at front
+    if (ms < lastms) {      // remove old row at front add add at back
         m_frontRow = rows.front();
         rows.pop_front();
         rows.push_back(m_backRow);
         auto pRow = psc::mem::make_active<Row>(ctx, PLANE_TILES);
-        auto& last = rows.back();
         if (auto lRow = pRow.lease())  {
-            lRow->build(last, Z_MAX-step, Z_MIN, step);
+            float zp = getZat(0.0f);    // we will reposition so this does not matter
+            if (!m_pulse) {
+                Glib::RefPtr<Glib::MainContext> ctx = Glib::MainContext::get_default();
+                m_pulse = std::make_shared<PulseIn>(ctx->gobj());
+            }
+            if (!m_fft) {
+                auto windowFunction = std::make_shared<HammingWindow2k>();
+                m_fft = std::make_shared<Fft2k>(windowFunction);
+                m_fft->calibrate(100.0);
+            }
+            auto data = m_pulse->read();
+            auto spec = m_fft->execute(data);
+            auto values = spec->adjustLin(PLANE_TILES, 0.25, m_scale);
+            lRow->build(m_backRow, zp, Z_MIN, step, values);
         }
         m_backRow = pRow;
     }
-    uint32_t z = PLANE_TILES-1;
+    uint32_t z = static_cast<float>(PLANE_TILES-1);
+    float timeFract = static_cast<float>(ms) / static_cast<float>(TIMESCALE);
     if (auto lRow = m_frontRow.lease()) {
-        float zp = getZat(static_cast<float>(z) + (static_cast<float>(ms) / static_cast<float>(TIMESCALE)));
+        float zp = getZat(static_cast<float>(z) + timeFract);
         lRow->setScalePos(X_OFFS, 0.0f, zp, 1.0);
     }
     --z;
     for (auto& pRow : rows) {
         if (auto lRow = pRow.lease()) {
-            float zp = getZat(static_cast<float>(z) + (static_cast<float>(ms) / static_cast<float>(TIMESCALE)));
+            float zp = getZat(static_cast<float>(z) + timeFract);
             lRow->setScalePos(X_OFFS, 0.0f, zp, 1.0);
         }
         --z;
     }
     if (auto lRow = m_backRow.lease()) {
-        float zp = getZat(static_cast<float>(z) + (static_cast<float>(ms) / static_cast<float>(TIMESCALE)));
+        float zp = getZat(static_cast<float>(z) + timeFract);
         lRow->setScalePos(X_OFFS, 0.0f, zp, 1.0);
     }
     lastms = ms;
@@ -145,14 +158,29 @@ PlaneGeometry::build()
             m_frontRow = pRow;
         }
         else {
-            //ctx->addGeometry(pRow);
             rows.push_back(pRow);
         }
         if (auto lRow = pRow.lease()) {
-            lRow->build(last, zp, Z_MIN, step);
+            std::vector<float> data;
+            data.resize(PLANE_TILES);
+            lRow->build(last, zp, Z_MIN, step, data);
         }
         last = pRow;
     }
 }
 
 
+double
+PlaneGeometry::getScale()
+{
+    return m_scale;
+}
+
+void
+PlaneGeometry::setScale(double scale)
+{
+#   ifdef DEBUG
+    std::cout << "PlaneGeometry::setScale " << scale << std::endl;
+#   endif
+    m_scale = scale;
+}

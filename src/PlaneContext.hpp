@@ -31,11 +31,15 @@ public:
     void setResolution(UV &uv);
     void setLineWidth(float lineWidth);
     void setAlpha(float alpha);
+    void setLight(Vector& light);
 
     void updateLocation() override;
+
+    static constexpr auto showSmokeShader{false}; // enable/disable test shader display
 private:
     GLint m_screen{};
     GLint m_lineWidth{};
     GLint m_alpha{};
+    GLint m_light{};
 };
 

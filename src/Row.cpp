@@ -18,12 +18,15 @@
 #include <iostream>
 #include <epoxy/gl.h>
 #include <stdlib.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/normal.hpp> // triangleNormal
+
 
 #include "Row.hpp"
 #include "PlaneGeometry.hpp"
 
 Row::Row(GeometryContext *_ctx, uint32_t _n)
-: psc::gl::Geom2(GL_LINES, _ctx)
+: psc::gl::Geom2(GL_TRIANGLES, _ctx)
 , m_n(_n)
 {
 }
@@ -32,56 +35,7 @@ Row::Row(GeometryContext *_ctx, uint32_t _n)
 Position
 Row::get(uint32_t i)
 {
-    return pos[i];
-}
-
-void
-Row::build2(const psc::mem::active_ptr<Row>& aPrev, float z, float min, float step)
-{
-    setScalePos(PlaneGeometry::X_OFFS, 0.0f, z, 1.0f);
-
-    Color color(0.15f, 1.0f, 0.15f);
-    auto lPrev = aPrev.lease();
-    for (uint32_t x = 0; x < m_n; ++x) {
-        auto last = 0.0f;
-        if (lPrev) {
-            Position p = lPrev->get(x);   // as we want to connect to previous need to store coord here as well
-            last = p.y;
-        }
-        float xp = min + step * x;
-    	float h = drand48();
-		float yp = last + h;
-        yp = std::min(yp, 4.5f);
-        yp = std::max(yp, 0.0f);
-        float zp = 0.0f;
-        Position p(xp, yp, zp);
-        addPoint(&p, &color, nullptr, nullptr);
-        pos.push_back(p);
-        if (lPrev) {
-            Position p = lPrev->get(x);   // as we want to connect to previous need to store coord here as well
-            p.z -= step;
-            addPoint(&p, &color, nullptr, nullptr);
-        }
-    }
-    for (unsigned int x = 0; x < m_n; ++x) {
-        int i1 = x;
-        int i2 = x + m_n;
-        int i3 = (x+1);
-        if (lPrev) {
-            addIndex(i1, i2);
-        }
-        if (x < m_n-1) {
-            addIndex(i1, i3);
-        }
-    }
-    if (lPrev) {
-        for (uint32_t x = 1; x < m_n; ++x) {
-            int i1 = m_n + (x-1);
-            int i2 = m_n + (x);
-            addIndex(i1, i2);         // avoid open lines at end
-        }
-    }
-    create_vao();
+    return m_pos[i];
 }
 
 
@@ -91,65 +45,81 @@ Row::getXat(uint32_t x, float step)
     return PlaneGeometry::Z_MIN + step * static_cast<float>(x);
 }
 
+float
+Row::getY(const psc::mem::active_ptr<Row>& prev, uint32_t x)
+{
+//    float preVal{};
+//    auto lPrev = prev.lease();
+//    if (lPrev) {
+//        for (int32_t j = -2; j <= 2; ++j) {
+//            auto i = std::max(j + static_cast<int>(x), 0);
+//            i = std::min(i, static_cast<int>(m_n - 1));
+//            Position p = lPrev->get(i);
+//            preVal += p.y;
+//        }
+//        preVal /= 5.0f;
+//    }
+    auto l = lrand48() % m_n;
+    float yp = l == x ? 2.0f : 0.0f;//preVal + (static_cast<float>(drand48()) - (preVal / MAX_Y)) * 2.0f;    //
+    yp = std::min(yp, MAX_Y);
+    yp = std::max(yp, MIN_Y);
+    return yp;
+}
+
 void
-Row::build(const psc::mem::active_ptr<Row>& prev, float z, float min, float step)
+Row::build(const psc::mem::active_ptr<Row>& prev
+          , float z
+          , float min
+          , float step
+          , const std::vector<float>& values)
 {
     setScalePos(PlaneGeometry::X_OFFS, 0.0f, z, 1.0f);
 
-    Color color(0.15f, 1.0f, 0.15f);
+    Color colorGreen(0.15f, 0.6f, 0.15f);
+    Color colorRed(0.6f, 0.15f, 0.15f);
     auto lPrev = prev.lease();
+    std::vector<Position> prevs;
     for (uint32_t x = 0; x < m_n; ++x) {
         float xp = getXat(x, step);
-//		float yp = 0.0f;
-//		int d = std::abs((int)x - i);
-//		if (d <= 3) {
-//			float dh = h;
-//			for (int j = 0; j < d; ++j) {
-//				dh = dh / 2.0f;
-//			}
-//			yp += dh;
-//		}
-        float preVal{};
-        if (lPrev) {
-            for (int32_t j = -2; j <= 2; ++j) {
-                auto i = std::max(j + static_cast<int>(x), 0);
-                i = std::min(i, static_cast<int>(m_n - 1));
-                Position p = lPrev->get(i);   // as we want to connect to previous need to store coord here as well
-                preVal += p.y;
-            }
-        }
-        preVal /= 5.0f;
-        float yp = preVal + (static_cast<float>(drand48()) - (preVal / (MAX_Y))) * 2.0f;
-        yp = std::min(yp, MAX_Y);
-        yp = std::max(yp, MIN_Y);
+        //float yp = getY(prev, x);
+        float yp = values[x];
         float zp = 0.0f;
         Position p(xp, yp, zp);
-        addPoint(&p, &color, nullptr, nullptr);
-        pos.emplace_back(std::move(p));
-    }
-    if (lPrev) {
-        for (uint32_t x = 0; x < m_n; ++x) {
-            Position p = lPrev->get(x);   // as we want to connect to previous need to store coord here as well
-            p.z += step;
-            addPoint(&p, &color, nullptr, nullptr);
+        m_pos.emplace_back(std::move(p));
+        Position prevPos;
+        if (lPrev) {
+            prevPos = lPrev->get(x);   // as we want to connect to previous need to store coord here as well
+            prevPos.z += step;
         }
+        else {
+            prevPos.x = xp;
+            prevPos.y = 0.0f;
+            prevPos.z = step;
+        }
+        prevs.emplace_back(std::move(prevPos));
     }
     for (uint32_t x = 0; x < m_n; ++x) {
-        uint32_t i1 = x;                 // this is index for pos
-        uint32_t i2 = x + m_n;           // this is the index for previous
-        uint32_t i3 = (x+1);             // this is the index for neighbor
-        if (lPrev) {
-            addIndex(i1, i2);       // connect pos & previous
+        auto pos = m_pos[x];
+        auto pre = prevs[x];
+        Color color(glm::mix(colorGreen, colorRed, pos.y / 4.5f));
+        Position next{};
+        if (x < m_n-1) {
+            next = m_pos[x+1];
         }
-        if (x < m_n-1) {            // if not last
-            addIndex(i1, i3);       // connect pos & next
-        }
+
+        auto norm = glm::triangleNormal(pos, next, pre);
+        addPoint(&pos, &color, &norm, nullptr);
+        addPoint(&pre, &color, &norm, nullptr);
     }
-    if (lPrev) {
-        for (uint32_t x = 1; x < m_n; ++x) {
-            int i1 = m_n + (x-1);
-            int i2 = m_n + (x);
-            addIndex(i1, i2);         // avoid open lines at end
+
+    for (uint32_t x = 0; x < m_n; ++x) {
+        uint32_t i1 = x * 2;                 // this is index for pos
+        uint32_t i2 = x * 2 + 1;             // this is the index for previous
+        uint32_t i3 = (x + 1) * 2;           // this is the index for neighbor
+        uint32_t i4 = (x + 1) * 2 + 1;       // this is the index for previous  neighbor
+        if (x < m_n-1) {            // if not last
+            addIndex(i1, i2, i3);       // connect pos & next
+            addIndex(i2, i4, i3);       // connect pos & neigb.
         }
     }
     create_vao();

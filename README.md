@@ -1,8 +1,16 @@
-This is some shader experiment.
+To make this a bit more useful integrated a sound output capture,
+with fft-conversion....
+
+- requires Pulseaudio 
+- as the output levels may vary, use preferences to adjust display to taste
+- the conversion of fft-data may not be to everyones taste (linear is prefered at the moment)
+
+This may also be used for some shader experiment
+(use PlaneContext::showSmokeShader (i know the naming is questionable at best...)).
 
 ![glscene](glscene.png "glscene")
 
-It may serve as a testbed to vary some shaders obtained from:
+To vary the display other shaders obtained from:
 https://www.shadertoy.com/
 The outline is :
 1. place the shader source in res

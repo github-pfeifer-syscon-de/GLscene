@@ -5,7 +5,7 @@
     <section>
       <item>
         <attribute name="label" translatable="yes">_Preferences</attribute>
-        <attribute name="action">app.preferences</attribute>
+        <attribute name="action">win.preferences</attribute>
       </item>
     </section>
     <section>

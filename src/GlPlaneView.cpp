@@ -29,10 +29,12 @@
 #include "Row.hpp"
 #include "GlPlaneView.hpp"
 #include "PlaneGeometry.hpp"
+#include "GlSceneWindow.hpp"
 
-GlPlaneView::GlPlaneView(Gtk::Application* application)
+GlPlaneView::GlPlaneView(GlSceneWindow* glSceneWindow)
 : Scene()
-, m_application{application}
+, m_application(glSceneWindow->getApplicaiton())
+, m_glSceneWindow{glSceneWindow}
 {
 }
 
@@ -44,7 +46,7 @@ GlPlaneView::~GlPlaneView()
 Position
 GlPlaneView::getIntialPosition()
 {
-    return Position(0.0f,12.0f,14.0f);
+    return Position(0.0f,12.0f,18.0f);
 }
 
 Rotational
@@ -61,7 +63,7 @@ guint32 GlPlaneView::getAnimationMs()
 
 gboolean
 GlPlaneView::init_shaders(Glib::Error &error) {
-    gboolean ret = TRUE;
+    gboolean ret = true;
     try {
         m_planeContext = new PlaneContext();
         gsize szVertex,szFragm;
@@ -78,7 +80,7 @@ GlPlaneView::init_shaders(Glib::Error &error) {
     }
     catch (const Glib::Error &err) {
         std::cout << "Error compiling " << err.what() << std::endl;
-        ret = FALSE;
+        ret = false;
     }
     return ret;
 }
@@ -87,7 +89,10 @@ void
 GlPlaneView::init(Gtk::GLArea *glArea)
 {
     m_naviGlArea = (NaviGlArea *)glArea;
+    //std::cout << "GlPlaneView::init"  << std::boolalpha << glArea->get_double_buffered() << std::endl;
+    glArea->set_double_buffered(false);     // reduce effort for animation, runs smoother
     m_planePane = new PlaneGeometry(m_planeContext);
+    m_planePane->setScale(m_glSceneWindow->getKeyConfig()->getDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::SCALE_KEY, 1.0));
     psc::gl::checkError("plane createVao");
     //std::cout << "geo vert: " << m_plane->getNumVertex()
     //          << " idx: " << m_plane->getNumIndex()
@@ -98,13 +103,13 @@ GlPlaneView::init(Gtk::GLArea *glArea)
         Position p2(10.0f, 0.0, -10.0f);    UV uv2(1.0f, 0.0f);
         Position p3(10.0f, 0.0, 10.0f);     UV uv3(1.0f, 1.0f);
         Position p4(-10.0f, 0.0, 10.0f);    UV uv4(0.0f, 1.0f);
-        lSmokePlane->addPoint(&p1, NULL, NULL, &uv1);
-        lSmokePlane->addPoint(&p2, NULL, NULL, &uv2);
-        lSmokePlane->addPoint(&p3, NULL, NULL, &uv3);
-        lSmokePlane->addPoint(&p4, NULL, NULL, &uv4);
+        lSmokePlane->addPoint(&p1, nullptr, nullptr, &uv1);
+        lSmokePlane->addPoint(&p2, nullptr, nullptr, &uv2);
+        lSmokePlane->addPoint(&p3, nullptr, nullptr, &uv3);
+        lSmokePlane->addPoint(&p4, nullptr, nullptr, &uv4);
         lSmokePlane->addIndex(0, 1, 2);
         lSmokePlane->addIndex(2, 3, 0);
-        lSmokePlane->setScalePos(-15.0f, 0.0f, 0.0f, 1.0f);
+        lSmokePlane->setScalePos(-12.0f, 0.0f, 0.0f, 1.0f);
         lSmokePlane->create_vao();
         psc::gl::checkError("smoke createVao");
     }
@@ -202,6 +207,10 @@ GlPlaneView::draw(Gtk::GLArea *glArea, Matrix &proj, Matrix &view)
     m_planeContext->setLineWidth(lineWidth);
     glLineWidth(lineWidth);
     m_planeContext->setAlpha(1.0f);
+
+    Vector light{0.f, -1.f, 0.f};
+    m_planeContext->setLight(light);
+
     Matrix projView = proj * view;
     auto midRows = m_planePane->getMidRows();
     m_planeContext->display(projView, midRows);
@@ -222,19 +231,19 @@ GlPlaneView::draw(Gtk::GLArea *glArea, Matrix &proj, Matrix &view)
     }
 
 
-    if (false) {
-    m_smokeContext->use();
-    psc::gl::checkError("useSmokeCtx");
+    if (PlaneContext::showSmokeShader) {
+        m_smokeContext->use();
+        psc::gl::checkError("useSmokeCtx");
 
-    // UV res(0.02f, 0.02f); // fits smoke
-    UV res(1.0f, 1.0f);   // fits wave
-    m_smokeContext->setResolution(res);
-    //std::cout << "t: " << t << std::endl;
-    float t = (float)((double)time/3.0E6);
-    m_smokeContext->setTime(t);
+        // UV res(0.02f, 0.02f); // fits smoke
+        UV res(1.0f, 1.0f);   // fits wave
+        m_smokeContext->setResolution(res);
+        //std::cout << "t: " << t << std::endl;
+        float t = (float)((double)time/3.0E6);
+        m_smokeContext->setTime(t);
 
-    m_smokeContext->display(projView);
-    m_smokeContext->unuse();
+        m_smokeContext->display(projView);
+        m_smokeContext->unuse();
     }
     //gint64 end = g_get_monotonic_time();
     //std::cout << "display " << (end-start) << std::endl;
@@ -251,4 +260,10 @@ GlPlaneView::on_click_select(GdkEventButton* event, float mx, float my)
     auto selected = m_planeContext->hit2(mx, my);
     //}
     return selected;
+}
+
+PlaneGeometry*
+GlPlaneView::getPlaneGeometry()
+{
+    return m_planePane;
 }

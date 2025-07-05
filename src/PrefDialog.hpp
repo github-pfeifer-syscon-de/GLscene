@@ -1,5 +1,6 @@
+/* -*- Mode: c++; c-basic-offset: 4; tab-width: 4;  coding: utf-8; -*-  */
 /*
- * Copyright (C) 2018 rpf
+ * Copyright (C) 2025 RPf <gpl3@pfeifer-syscon.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,33 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include <KeyConfig.hpp>
+#include <gtkmm.h>
 
-#include "GlPlaneView.hpp"
-
-
-class GlSceneApp;
-class GlPlaneView;
+class GlSceneWindow;
 class PlaneGeometry;
 
-class GlSceneWindow : public Gtk::ApplicationWindow {
+class PrefDialog
+: public Gtk::Dialog
+{
 public:
-    GlSceneWindow(GlSceneApp* application);
-    virtual ~GlSceneWindow() ;
+    PrefDialog(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder, PlaneGeometry* planeGeometry);
+    virtual ~PrefDialog() = default;
 
-    void on_action_preferences();
-    Gtk::Application* getApplicaiton();
-    PlaneGeometry* getPlaneGeometry();
-    std::shared_ptr<KeyConfig> getKeyConfig();
-    void saveConfig();
-    static constexpr auto MAIN_SECTION{"main"};
-    static constexpr auto SCALE_KEY{"scaleY"};
+    static void show(GlSceneWindow* sceneWindow);
+    double getMaxLevel();
 private:
-    GlSceneApp* m_application;
-    GlPlaneView* m_planView{nullptr};
-    std::shared_ptr<KeyConfig> m_keyConfig;
+    Gtk::Scale* m_maxLevel;
+    PlaneGeometry* m_planeGeometry;
 };
 

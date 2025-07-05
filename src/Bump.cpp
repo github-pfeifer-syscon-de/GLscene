@@ -35,10 +35,10 @@ Bump::~Bump()
 {
 }
 
-void 
-Bump::advance() 
+void
+Bump::advance()
 {
-    d += r ? 0.05 : -0.05;
+    d += r ? 0.05f : -0.05f;
     if (r) {
         if (d > h) {
             r = false;
@@ -54,11 +54,11 @@ Bump::advance()
 void
 Bump::init()
 {
-    h = (drand48() * 2.0f + 1.5f);
+    h = (static_cast<float>(drand48()) * 2.0f + 1.5f);
     r = true;
     d = 0.0f;
-    xm = (8.0f-drand48() * 16.0f);
-    ym = (8.0f-drand48() * 16.0f);
+    xm = (8.0f-static_cast<float>(drand48()) * 16.0f);
+    ym = (8.0f-static_cast<float>(drand48()) * 16.0f);
 }
 
 float

@@ -2,6 +2,7 @@
 <gresources>
   <gresource prefix="/de/pfeifer_syscon/glscene">
     <file preprocess="xml-stripblanks">app-menu.ui</file>
+    <file preprocess="xml-stripblanks">prefs-dlg.ui</file>
     <file>vertex.glsl</file>
     <file>fragment.glsl</file>
     <file>smoke-vertex.glsl</file>

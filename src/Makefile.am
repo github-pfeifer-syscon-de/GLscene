@@ -5,16 +5,15 @@ AM_CPPFLAGS = \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)."\" \
 	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
 	$(GENERICGLM_CFLAGS) \
-	$(GTKMM_CFLAGS) \
-	$(GLIBMM_CFLAGS) \
 	$(GTHREAD_CFLAGS) \
+	$(ALSA_CFLAGS) \
 	$(EPOXY_CFLAGS)
 
 AM_CFLAGS= \
-	-Wall
+	-Wpedantic -Wall -Wconversion
 
-AM_CXXFLAGS =\
-	-Wall
+AM_CXXFLAGS = \
+	-Wpedantic -Wall -Wconversion
 
 bin_PROGRAMS = glscene
 
@@ -30,6 +29,7 @@ glscene_SOURCES = \
 	PlaneContext.hpp \
 	PlaneGeometry.cpp \
 	PlaneGeometry.hpp \
+	Row.cpp \
 	Row.hpp \
 	TextContext.cpp \
 	TextContext.hpp \
@@ -37,15 +37,24 @@ glscene_SOURCES = \
 	GlSceneApp.hpp \
 	SmokeContext.cpp \
 	SmokeContext.hpp \
-	Row.cpp
+	ChunkedArray.cpp \
+	ChunkedArray.hpp \
+	Pulse.cpp \
+	Pulse.hpp \
+	Fft.cpp \
+	Fft.hpp \
+	PrefDialog.cpp \
+	PrefDialog.hpp \
+	Capture.cpp \
+	Capture.hpp
 
 glscene_LDFLAGS =
 
 glscene_LDADD = $(GENERICGLM_LIBS) \
 	$(GLIBMM_LIBS) \
-	$(GTKMM_LIBS) \
 	$(GTHREAD_LIBS) \
-	$(EPOXY_LIBS) 
+	$(ALSA_LIBS) \
+	$(EPOXY_LIBS)
 
 # Remove ui directory on uninstall
 uninstall-local:

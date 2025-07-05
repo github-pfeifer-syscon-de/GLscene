@@ -22,27 +22,60 @@
 
 #include "GlSceneWindow.hpp"
 #include "GlSceneApp.hpp"
+#include "PrefDialog.hpp"
 
 GlSceneWindow::GlSceneWindow(GlSceneApp* application)
 : Gtk::ApplicationWindow()
+, m_application{application}
 {
     set_title("Flow");
     auto pix = Gdk::Pixbuf::create_from_resource(application->get_resource_base_path() + "/glscene.png");
     set_icon(pix);
 
-    GlPlaneView *plane = new GlPlaneView(application);
-    auto planeView = Gtk::manage(new NaviGlArea(plane));
+    m_keyConfig = std::make_shared<KeyConfig>("glscene.conf");
+    add_action("preferences", sigc::mem_fun(this, &GlSceneWindow::on_action_preferences));
+    m_planView = new GlPlaneView(this);
+    auto planeView = Gtk::manage(new NaviGlArea(m_planView));
     add(*planeView);
     //set_decorated(FALSE);
     set_default_size(640, 480);
     show_all_children();
 }
 
+ GlSceneWindow::~GlSceneWindow()
+ {
+     if (m_planView) {
+         delete m_planView;
+         m_planView = nullptr;
+     }
+ }
 
 void
 GlSceneWindow::on_action_preferences()
 {
-    //Gtk::Dialog *dlg = m_monglView.monitors_config();
-    //dlg->set_transient_for(*this);
-    //dlg->run();
+    PrefDialog::show(this);
+}
+
+Gtk::Application*
+GlSceneWindow::getApplicaiton()
+{
+    return m_application;
+}
+
+PlaneGeometry*
+GlSceneWindow::getPlaneGeometry()
+{
+    return m_planView->getPlaneGeometry();
+}
+
+std::shared_ptr<KeyConfig>
+GlSceneWindow::getKeyConfig()
+{
+    return m_keyConfig;
+}
+
+void
+GlSceneWindow::saveConfig()
+{
+    m_keyConfig->saveConfig();
 }

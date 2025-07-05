@@ -35,6 +35,7 @@ PlaneContext::updateLocation()
     m_screen = glGetUniformLocation(m_program, "screen");
     m_lineWidth = glGetUniformLocation(m_program, "lineWidth");
     m_alpha = glGetUniformLocation(m_program, "alpha");
+    m_light = glGetUniformLocation(m_program, "light");
     NaviContext::updateLocation();
 }
 
@@ -56,10 +57,16 @@ PlaneContext::setAlpha(float alpha)
     glUniform1f(m_alpha, alpha);
 }
 
+void
+PlaneContext::setLight(Vector& light)
+{
+    glUniform3fv(m_light, 1, &light[0]);
+}
+
 bool
 PlaneContext::useNormal()
 {
-    return false;
+    return true;
 }
 
 bool

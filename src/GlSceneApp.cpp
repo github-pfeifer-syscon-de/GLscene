@@ -67,7 +67,6 @@ GlSceneApp::on_startup()
 
     m_gltermAppWindow = new GlSceneWindow(this);
     // Add actions and keyboard accelerators for the application menu.
-    add_action("preferences", sigc::mem_fun(m_gltermAppWindow, &GlSceneWindow::on_action_preferences));
     add_action("quit", sigc::mem_fun(*this, &GlSceneApp::on_action_quit));
     set_accel_for_action("app.quit", "<Ctrl>Q");
 

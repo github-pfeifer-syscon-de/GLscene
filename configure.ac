@@ -18,6 +18,8 @@ LT_INIT
 
 PKG_CHECK_MODULES(EPOXY,epoxy)
 
+PKG_CHECK_MODULES(ALSA,[alsa, fftw3, libpulse, libpulse-mainloop-glib])
+
 PKG_CHECK_MODULES(GTHREAD,gthread-2.0)
 
 PKG_CHECK_MODULES([GENERICGLM], [genericglm >= 0.3.2])
@@ -32,5 +34,6 @@ AC_CONFIG_FILES([
 Makefile
 src/Makefile
 res/Makefile
+test/Makefile
 ])
 AC_OUTPUT

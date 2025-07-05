@@ -24,6 +24,8 @@
 
 #include "PlaneContext.hpp"
 #include "Row.hpp"
+#include "Fft.hpp"
+#include "Pulse.hpp"
 
 class PlaneGeometry  {
 public:
@@ -37,12 +39,14 @@ public:
     psc::mem::active_ptr<Row> getBackRow();
     float getFrontAlpha();
     float getBackAlpha();
-    static constexpr auto PLANE_TILES{20u};   // was 40
+    static constexpr auto PLANE_TILES{40u};   // was 40
     static constexpr auto Z_MIN{-10.0f};
     static constexpr auto Z_MAX{10.0f};
-    static constexpr auto X_OFFS{0.0f};     // 15.0fuse 0.0f for ceneted
+    static constexpr auto X_OFFS{PlaneContext::showSmokeShader ? 12.0f : 0.0f};
     static constexpr auto STEP{(Z_MAX-Z_MIN) / static_cast<float>(PLANE_TILES-1)};
-    static constexpr auto TIMESCALE{1000l};
+    static constexpr auto TIMESCALE{500l};
+    double getScale();
+    void setScale(double scale);
 protected:
     float getZat(float z);
 private:
@@ -53,5 +57,9 @@ private:
     psc::mem::active_ptr<Row> m_backRow;
     float m_frontAlpha;
     float m_backAlpha;
+    gint64 m_startTime{-1l};
+    std::shared_ptr<Fft2k> m_fft;
+    std::shared_ptr<PulseIn> m_pulse;
+    double m_scale{1.0};
 };
 
