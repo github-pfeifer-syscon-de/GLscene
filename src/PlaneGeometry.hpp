@@ -47,6 +47,9 @@ public:
     static constexpr auto TIMESCALE{500l};
     double getScale();
     void setScale(double scale);
+    bool isKeepSum();
+    void setKeepSum(bool keepSum);
+    std::shared_ptr<psc::snd::PulseCtx> getPulseContext();
 protected:
     float getZat(float z);
 private:
@@ -58,8 +61,10 @@ private:
     float m_frontAlpha;
     float m_backAlpha;
     gint64 m_startTime{-1l};
-    std::shared_ptr<Fft2k> m_fft;
-    std::shared_ptr<PulseIn> m_pulse;
+    std::shared_ptr<Fft2k1k> m_fft;
+    std::shared_ptr<psc::snd::PulseCtx> m_pulseCtx;
+    std::shared_ptr<psc::snd::PulseIn> m_pulseIn;
     double m_scale{1.0};
+    bool m_keepSum{false};
 };
 

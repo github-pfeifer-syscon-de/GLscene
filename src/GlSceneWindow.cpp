@@ -77,5 +77,9 @@ GlSceneWindow::getKeyConfig()
 void
 GlSceneWindow::saveConfig()
 {
+    auto planGeom = m_planView->getPlaneGeometry();
+    m_keyConfig->setDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::SCALE_KEY, planGeom->getScale());
+    m_keyConfig->setBoolean(GlSceneWindow::MAIN_SECTION, GlSceneWindow::KEEP_SUM_KEY, planGeom->isKeepSum());
+
     m_keyConfig->saveConfig();
 }

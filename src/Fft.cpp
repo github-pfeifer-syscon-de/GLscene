@@ -87,7 +87,7 @@ Spectrum<windowSize>::getMax()
  */
 template <uint32_t windowSize>
 std::vector<float>
-Spectrum<windowSize>::adjustLin(size_t cnt, double usageFactor, double factor)
+Spectrum<windowSize>::adjustLin(size_t cnt, double usageFactor, double factor, bool keepSum)
 {
     std::vector<float> fout;
     fout.resize(cnt);
@@ -109,7 +109,9 @@ Spectrum<windowSize>::adjustLin(size_t cnt, double usageFactor, double factor)
     }
     float maxOut{std::numeric_limits<float>::min()};
     for (size_t n = 0; n < fout.size(); ++n) {
-        fout[n] /= static_cast<float>(binCnt[n]);
+        if (!keepSum) {
+            fout[n] /= static_cast<float>(binCnt[n]);
+        }
         maxOut = std::max(maxOut, fout[n]);
     }
     //auto scale = static_cast<float>(maxVal) / maxOut;
@@ -136,7 +138,7 @@ Spectrum<windowSize>::adjustLin(size_t cnt, double usageFactor, double factor)
  */
 template <uint32_t windowSize>
 std::vector<float>
-Spectrum<windowSize>::adjustLog(size_t cnt, double usageFactor)
+Spectrum<windowSize>::adjustLog(size_t cnt, double usageFactor, double factor, bool keepSum)
 {
     std::vector<float> fout;
     fout.resize(cnt);
@@ -149,7 +151,7 @@ Spectrum<windowSize>::adjustLog(size_t cnt, double usageFactor)
     double maxIn{std::numeric_limits<double>::min()};
     for (size_t i = 0; i < sumSize; ++i) {
         auto n = std::min(static_cast<size_t>(std::log10(1.0 + static_cast<double>(i) * factorLog) * static_cast<double>(cnt)), static_cast<size_t>(cnt-1));
-        fout[n] = std::max(fout[n], static_cast<float>(m_sum[i]));
+        fout[n] = std::max(fout[n], static_cast<float>(m_sum[i] * factor));
         ++binCnt[n];
         maxIn = std::max(maxIn, m_sum[i]);
     }
@@ -159,18 +161,22 @@ Spectrum<windowSize>::adjustLog(size_t cnt, double usageFactor)
     }
     float maxOut{std::numeric_limits<float>::min()};
     for (size_t n = 0; n < fout.size(); ++n) {
-        fout[n] /= static_cast<float>(binCnt[n]);
+        if (!keepSum) {
+            fout[n] /= static_cast<float>(binCnt[n]);
+        }
         maxOut = std::max(maxOut, fout[n]);
     }
     //auto scale = static_cast<float>(maxVal) / maxOut;
     //for (size_t i = 0; i < fout.size(); ++i) {
     //    fout[i] *= scale;
     //}
+#   ifdef DEBUG
     std::cout << "Spectrum::adjustLog"
               << " usageFactor " << usageFactor
               << " factor log " << factorLog
               << " maxIn " << maxIn
               << " maxOut " << maxOut << std::endl;
+#   endif
     return fout;
 }
 

@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
-
-TESTS = fft_test patest
+# patest left for manual test 
+TESTS = fft_test
 
 AM_CPPFLAGS = \
 	-DPACKAGE_LOCALE_DIR=\""$(localedir)"\" \

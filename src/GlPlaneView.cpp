@@ -92,7 +92,9 @@ GlPlaneView::init(Gtk::GLArea *glArea)
     //std::cout << "GlPlaneView::init"  << std::boolalpha << glArea->get_double_buffered() << std::endl;
     glArea->set_double_buffered(false);     // reduce effort for animation, runs smoother
     m_planePane = new PlaneGeometry(m_planeContext);
-    m_planePane->setScale(m_glSceneWindow->getKeyConfig()->getDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::SCALE_KEY, 1.0));
+    auto keyConfig = m_glSceneWindow->getKeyConfig();
+    m_planePane->setScale(keyConfig->getDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::SCALE_KEY, 1.0));
+    m_planePane->setKeepSum(keyConfig->getBoolean(GlSceneWindow::MAIN_SECTION, GlSceneWindow::KEEP_SUM_KEY, false));
     psc::gl::checkError("plane createVao");
     //std::cout << "geo vert: " << m_plane->getNumVertex()
     //          << " idx: " << m_plane->getNumIndex()

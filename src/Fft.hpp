@@ -94,9 +94,9 @@ public:
     virtual ~Spectrum() = default;
 
     // linear adjustment for frequency
-    std::vector<float> adjustLin(size_t cnt, double usageFactor, double factor);
+    std::vector<float> adjustLin(size_t cnt, double usageFactor, double factor = 1.0, bool keepSum = false);
     // logarithmic adjustment for frequency
-    std::vector<float> adjustLog(size_t cnt, double usageFactor);
+    std::vector<float> adjustLog(size_t cnt, double usageFactor, double factor = 1.0, bool keepSum = false);
     void add(fftw_complex* fft_result);
     void scale(double nScale);
     double getMax();

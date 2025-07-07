@@ -23,7 +23,11 @@
 #include <giomm.h>
 #include <memory>
 
-class Pulse;
+namespace psc::snd
+{
+class PulseIn;
+class PulseOut;
+}
 
 class TestApp
 : public Gio::Application
@@ -35,6 +39,7 @@ public:
     void on_activate() override;
     int getResult();
 protected:
-    void start(GMainContext* ctx);
-    std::shared_ptr<PulseIn> m_pulse;
+    void start(const Glib::RefPtr<Glib::MainContext>& ctx);
+    std::shared_ptr<psc::snd::PulseIn> m_pulseIn;
+    std::shared_ptr<psc::snd::PulseOut> m_pulseOut;
 };

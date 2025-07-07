@@ -47,14 +47,15 @@ check_fft(Fft<windowSize, hopSize>* fft, const char* name, ChunkedArray<int16_t>
     //list.emplace_back(std::move(data));
     auto start = std::chrono::steady_clock::now();
     auto spec = fft->execute(data);
-    auto out = spec->adjustLog(16, 0.5);
+    auto out = spec->adjustLin(16, 0.5);
     auto finish = std::chrono::steady_clock::now();
     double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
     std::cout << name <<  " duration " << elapsed_seconds << std::endl;
     float err2k2k{};
+    float max = std::ranges::max(out);
     for (uint32_t i = 0; i < out.size(); ++i) {
         std::cout << name << " " << i << " = " << out[i] << std::endl;
-        if (out[i] < 50.0f) {
+        if (out[i] < max) {
             err2k2k += out[i];
         }
     }
@@ -82,20 +83,20 @@ check_alsa(const char* name, ChunkedArray<int16_t>& data)
 //        }
 //    }
 //    std::cout << name << " err " << err2k2k << std::endl;
-
-    const double cnt{16.0};
-    const uint32_t sumCnt{200};
-    double factorLin = cnt / static_cast<double>(sumCnt);
-    double factorLog = (10.0 - 1.0) / static_cast<double>(sumCnt);
-    for (size_t i = 0; i < sumCnt; ++i) {
-        auto nLin = static_cast<size_t>(static_cast<double>(i) * factorLin);
-        auto nLog = static_cast<size_t>(std::log10(1.0 + static_cast<double>(i) * factorLog) * static_cast<double>(cnt));
-        auto f = (22050.0 / static_cast<double>(sumCnt-1) * static_cast<double>(i+1));
-        std::cout << "i " << i
-                  << " f " << f
-                  << " lin " << nLin
-                  << " log " << nLog << std::endl;
-    }
+//
+//    const double cnt{16.0};
+//    const uint32_t sumCnt{200};
+//    double factorLin = cnt / static_cast<double>(sumCnt);
+//    double factorLog = (10.0 - 1.0) / static_cast<double>(sumCnt);
+//    for (size_t i = 0; i < sumCnt; ++i) {
+//        auto nLin = static_cast<size_t>(static_cast<double>(i) * factorLin);
+//        auto nLog = static_cast<size_t>(std::log10(1.0 + static_cast<double>(i) * factorLog) * static_cast<double>(cnt));
+//        auto f = (22050.0 / static_cast<double>(sumCnt-1) * static_cast<double>(i+1));
+//        std::cout << "i " << i
+//                  << " f " << f
+//                  << " lin " << nLin
+//                  << " log " << nLog << std::endl;
+//    }
     return true;
 }
 

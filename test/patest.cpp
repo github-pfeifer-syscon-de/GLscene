@@ -9,6 +9,8 @@
 #include "ChunkedArray.hpp"
 
 // Pulse audio testing
+//   beware this uses real in-/output
+//   for this reason it is not called by default
 
 TestApp::TestApp()
 : Gio::Application("de.pfeifer_syscon.pulseTest")
@@ -16,9 +18,14 @@ TestApp::TestApp()
 }
 
 void
-TestApp::start(GMainContext* ctx)
+TestApp::start(const Glib::RefPtr<Glib::MainContext>& ctx)
 {
-    m_pulse = std::make_shared<PulseIn>(ctx);
+    auto pulseCtx = std::make_shared<psc::snd::PulseCtx>(ctx);
+    psc::snd::PulseFormat fmt;
+    m_pulseIn = std::make_shared<psc::snd::PulseIn>(pulseCtx, fmt);
+    auto sineSource = std::make_shared<psc::snd::SineSource>(); //441
+    sineSource->setFrequency(441.0f);
+    m_pulseOut = std::make_shared<psc::snd::PulseOut>(pulseCtx, fmt, sineSource);
 }
 
 void
@@ -28,14 +35,13 @@ TestApp::on_activate()
     // create main loop so the dispatch works
     auto main = Glib::MainLoop::create(false);
     auto ctx = main->get_context();
-    GMainContext* c_ctx = ctx->gobj();
     ctx->signal_idle().connect_once(
             sigc::bind(
               sigc::mem_fun(*this, &TestApp::start)
-            , c_ctx));
+            , ctx));
     ctx->signal_timeout().connect_seconds_once([&] {
             main->quit();
-    }, 12);
+    }, 6);
     main->run();
 }
 
@@ -44,8 +50,10 @@ TestApp::on_activate()
 int
 TestApp::getResult()
 {
-    auto data = m_pulse->read();
-    std::cout << "Got " << data.size() << " samples" << std::endl;
+    m_pulseOut->drain();
+    m_pulseIn->disconnect();
+    auto data = m_pulseIn->read();
+    printf("TestApp::getResult got %ld samples\n", data.size());
     int16_t min{std::numeric_limits<int16_t>::max()},max{std::numeric_limits<int16_t>::min()};
     int64_t avg{},cnt{};
     auto start = std::chrono::steady_clock::now();
@@ -77,24 +85,5 @@ int main(int argc, char **argv)
     app.run(argc, argv);
     return app.getResult();
 
-//    file.open("out.pcm", std::ios::binary | std::ios::trunc);
-//
-//    pa_mainloop *loop = pa_mainloop_new();
-//    pa_mainloop_api *api = pa_mainloop_get_api(loop);
-//    pa_context *ctx = pa_context_new(api, "padump");
-//    pa_context_set_state_callback(ctx, &pa_context_notify_cb, nullptr /*userdata*/);
-//    if (pa_context_connect(ctx, nullptr, PA_CONTEXT_NOFLAGS, nullptr) < 0) {
-//	std::cerr << "PA connection failed.\n";
-//	return -1;
-//    }
-//
-//
-//    pa_mainloop_run(loop, nullptr);
-//
-//    // pa_stream_disconnect(..)
-//
-//    pa_context_disconnect(ctx);
-//    pa_mainloop_free(loop);
-//    file.close();
-//    return 0;
+
 }

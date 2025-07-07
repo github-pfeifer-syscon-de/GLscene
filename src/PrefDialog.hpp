@@ -20,11 +20,14 @@
 
 #include <gtkmm.h>
 
+#include "Pulse.hpp"
+
 class GlSceneWindow;
 class PlaneGeometry;
 
 class PrefDialog
 : public Gtk::Dialog
+, public psc::snd::PulseStreamNotify
 {
 public:
     PrefDialog(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder, PlaneGeometry* planeGeometry);
@@ -32,8 +35,20 @@ public:
 
     static void show(GlSceneWindow* sceneWindow);
     double getMaxLevel();
+    bool isKeepSum();
+    void streamNotify(psc::snd::PulseStreamState state) override;
+protected:
+    void signalGenToggel();
+    void signalFrequencyChange();
+    void signalVolumeChange();
 private:
     Gtk::Scale* m_maxLevel;
+    Gtk::CheckButton* m_keepSum;
+    Gtk::ToggleButton* m_signalGen;
+    Gtk::Scale* m_frequency;
     PlaneGeometry* m_planeGeometry;
+    std::shared_ptr<psc::snd::SineSource> m_source;
+    std::shared_ptr<psc::snd::PulseOut> m_out;
+    Gtk::Scale* m_volume;
 };
 

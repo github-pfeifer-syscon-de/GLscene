@@ -39,6 +39,7 @@ public:
     void saveConfig();
     static constexpr auto MAIN_SECTION{"main"};
     static constexpr auto SCALE_KEY{"scaleY"};
+    static constexpr auto KEEP_SUM_KEY{"keepSum"};
 private:
     GlSceneApp* m_application;
     GlPlaneView* m_planView{nullptr};

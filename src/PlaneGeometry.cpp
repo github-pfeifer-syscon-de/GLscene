@@ -57,18 +57,22 @@ PlaneGeometry::advance(gint64 time)
         auto pRow = psc::mem::make_active<Row>(ctx, PLANE_TILES);
         if (auto lRow = pRow.lease())  {
             float zp = getZat(0.0f);    // we will reposition so this does not matter
-            if (!m_pulse) {
+            if (!m_pulseCtx) {
                 Glib::RefPtr<Glib::MainContext> ctx = Glib::MainContext::get_default();
-                m_pulse = std::make_shared<PulseIn>(ctx->gobj());
+                m_pulseCtx = std::make_shared<psc::snd::PulseCtx>(ctx);
+            }
+            if (!m_pulseIn) {
+                psc::snd::PulseFormat fmt;
+                m_pulseIn = std::make_shared<psc::snd::PulseIn>(m_pulseCtx, fmt);
             }
             if (!m_fft) {
                 auto windowFunction = std::make_shared<HammingWindow2k>();
-                m_fft = std::make_shared<Fft2k>(windowFunction);
+                m_fft = std::make_shared<Fft2k1k>(windowFunction);
                 m_fft->calibrate(100.0);
             }
-            auto data = m_pulse->read();
+            auto data = m_pulseIn->read();
             auto spec = m_fft->execute(data);
-            auto values = spec->adjustLin(PLANE_TILES, 0.25, m_scale);
+            auto values = spec->adjustLog(PLANE_TILES, 0.5, m_scale, m_keepSum);
             lRow->build(m_backRow, zp, Z_MIN, step, values);
         }
         m_backRow = pRow;
@@ -183,4 +187,23 @@ PlaneGeometry::setScale(double scale)
     std::cout << "PlaneGeometry::setScale " << scale << std::endl;
 #   endif
     m_scale = scale;
+}
+
+bool
+PlaneGeometry::isKeepSum()
+{
+    return m_keepSum;
+}
+
+void
+PlaneGeometry::setKeepSum(bool keepSum)
+{
+    m_keepSum = keepSum;
+}
+
+
+std::shared_ptr<psc::snd::PulseCtx>
+PlaneGeometry::getPulseContext()
+{
+    return m_pulseCtx;
 }
