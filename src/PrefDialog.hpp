@@ -34,13 +34,9 @@ public:
     virtual ~PrefDialog() = default;
 
     static void show(GlSceneWindow* sceneWindow);
-    double getMaxLevel();
-    bool isKeepSum();
     void streamNotify(psc::snd::PulseStreamState state) override;
 protected:
     void signalGenToggel();
-    void signalFrequencyChange();
-    void signalVolumeChange();
 private:
     Gtk::Scale* m_maxLevel;
     Gtk::CheckButton* m_keepSum;
@@ -50,5 +46,7 @@ private:
     std::shared_ptr<psc::snd::SineSource> m_source;
     std::shared_ptr<psc::snd::PulseOut> m_out;
     Gtk::Scale* m_volume;
+    Gtk::Scale* m_freqUsage;
+    Gtk::ComboBoxText* m_freqMode;
 };
 

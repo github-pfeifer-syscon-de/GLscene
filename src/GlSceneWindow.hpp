@@ -37,9 +37,12 @@ public:
     PlaneGeometry* getPlaneGeometry();
     std::shared_ptr<KeyConfig> getKeyConfig();
     void saveConfig();
+    void restoreConfig();
     static constexpr auto MAIN_SECTION{"main"};
     static constexpr auto SCALE_KEY{"scaleY"};
     static constexpr auto KEEP_SUM_KEY{"keepSum"};
+    static constexpr auto FREQ_USE_KEY{"frequUsage"};
+    static constexpr auto FREQ_SCALE_MODE_KEY{"frequScaleMode"};
 private:
     GlSceneApp* m_application;
     GlPlaneView* m_planView{nullptr};

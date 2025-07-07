@@ -80,6 +80,18 @@ GlSceneWindow::saveConfig()
     auto planGeom = m_planView->getPlaneGeometry();
     m_keyConfig->setDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::SCALE_KEY, planGeom->getScale());
     m_keyConfig->setBoolean(GlSceneWindow::MAIN_SECTION, GlSceneWindow::KEEP_SUM_KEY, planGeom->isKeepSum());
+    m_keyConfig->setDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::FREQ_USE_KEY, planGeom->getAudioUsageRate());
+    m_keyConfig->setString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::FREQ_SCALE_MODE_KEY, planGeom->getScaleMode());
 
     m_keyConfig->saveConfig();
+}
+
+void
+GlSceneWindow::restoreConfig()
+{
+    auto planGeom = m_planView->getPlaneGeometry();
+    planGeom->setScale(m_keyConfig->getDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::SCALE_KEY, 1.0));
+    planGeom->setKeepSum(m_keyConfig->getBoolean(GlSceneWindow::MAIN_SECTION, GlSceneWindow::KEEP_SUM_KEY, false));
+    planGeom->setAudioUsageRate(m_keyConfig->getDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::FREQ_USE_KEY, 0.5));
+    planGeom->setScaleMode(m_keyConfig->getString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::FREQ_SCALE_MODE_KEY, "L"));
 }

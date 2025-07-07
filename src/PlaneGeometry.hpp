@@ -49,6 +49,12 @@ public:
     void setScale(double scale);
     bool isKeepSum();
     void setKeepSum(bool keepSum);
+    std::string getScaleMode();
+    void setScaleMode(const std::string& scaleMode);
+    double getAudioUsageRate();
+    void setAudioUsageRate(double useRate);
+
+
     std::shared_ptr<psc::snd::PulseCtx> getPulseContext();
 protected:
     float getZat(float z);
@@ -66,5 +72,7 @@ private:
     std::shared_ptr<psc::snd::PulseIn> m_pulseIn;
     double m_scale{1.0};
     bool m_keepSum{false};
+    std::string m_scaleMode;
+    double m_audioUsageRate{0.5};
 };
 

@@ -72,7 +72,13 @@ PlaneGeometry::advance(gint64 time)
             }
             auto data = m_pulseIn->read();
             auto spec = m_fft->execute(data);
-            auto values = spec->adjustLog(PLANE_TILES, 0.5, m_scale, m_keepSum);
+            std::vector<float> values;
+            if (m_scaleMode == "O") {
+                values = spec->adjustLog(PLANE_TILES, m_audioUsageRate, m_scale, m_keepSum);
+            }
+            else {
+                values = spec->adjustLin(PLANE_TILES, m_audioUsageRate, m_scale, m_keepSum);
+            }
             lRow->build(m_backRow, zp, Z_MIN, step, values);
         }
         m_backRow = pRow;
@@ -201,6 +207,30 @@ PlaneGeometry::setKeepSum(bool keepSum)
     m_keepSum = keepSum;
 }
 
+
+std::string
+PlaneGeometry::getScaleMode()
+{
+    return m_scaleMode;
+}
+
+void
+PlaneGeometry::setScaleMode(const std::string& scaleMode)
+{
+    m_scaleMode = scaleMode;
+}
+
+double
+PlaneGeometry::getAudioUsageRate()
+{
+    return m_audioUsageRate;
+}
+
+void
+PlaneGeometry::setAudioUsageRate(double useRate)
+{
+    m_audioUsageRate = useRate;
+}
 
 std::shared_ptr<psc::snd::PulseCtx>
 PlaneGeometry::getPulseContext()

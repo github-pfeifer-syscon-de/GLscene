@@ -28,7 +28,7 @@ PrefDialog::PrefDialog(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     builder->get_widget("maxLevel", m_maxLevel);
     m_maxLevel->set_value(m_planeGeometry->getScale());
     m_maxLevel->signal_value_changed().connect([this] {
-        m_planeGeometry->setScale(getMaxLevel());
+        m_planeGeometry->setScale(m_maxLevel->get_value());
     });
     builder->get_widget("keepSum", m_keepSum);
     m_keepSum->set_active(m_planeGeometry->isKeepSum());
@@ -39,11 +39,29 @@ PrefDialog::PrefDialog(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     m_signalGen->signal_toggled().connect(
         sigc::mem_fun(*this, &PrefDialog::signalGenToggel));
     builder->get_widget("frequency", m_frequency);
-    m_frequency->signal_value_changed().connect(
-        sigc::mem_fun(*this, &PrefDialog::signalFrequencyChange));
+    m_frequency->signal_value_changed().connect([this] {
+        if (m_source) {
+            m_source->setFrequency(static_cast<float>(m_frequency->get_value()));
+        }
+    });
     builder->get_widget("volume", m_volume);
-    m_volume->signal_value_changed().connect(
-        sigc::mem_fun(*this, &PrefDialog::signalVolumeChange));
+    m_volume->signal_value_changed().connect([this] {
+        if (m_source) {
+            m_source->setVolume(static_cast<float>(m_volume->get_value()));
+        }
+    });
+    builder->get_widget("freqUsage", m_freqUsage);
+    m_freqUsage->set_value(m_planeGeometry->getAudioUsageRate());
+    m_freqUsage->signal_value_changed().connect([this] {
+        m_planeGeometry->setAudioUsageRate(m_freqUsage->get_value());
+    });
+    builder->get_widget("freqMode", m_freqMode);
+    m_freqMode->append("L", "Linear");
+    m_freqMode->append("O", "Logarithmic");
+    m_freqMode->set_active_id(m_planeGeometry->getScaleMode());
+    m_freqMode->signal_changed().connect([this] {
+        m_planeGeometry->setScaleMode(m_freqMode->get_active_id());
+    });
 }
 
 void
@@ -71,34 +89,6 @@ PrefDialog::signalGenToggel()
 }
 
 void
-PrefDialog::signalFrequencyChange()
-{
-    if (m_source) {
-        m_source->setFrequency(static_cast<float>(m_frequency->get_value()));
-    }
-}
-
-void
-PrefDialog::signalVolumeChange()
-{
-    if (m_source) {
-        m_source->setVolume(static_cast<float>(m_volume->get_value()));
-    }
-}
-
-double
-PrefDialog::getMaxLevel()
-{
-    return m_maxLevel->get_value();
-}
-
-bool
-PrefDialog::isKeepSum()
-{
-    return m_keepSum->get_active();
-}
-
-void
 PrefDialog::streamNotify(psc::snd::PulseStreamState state)
 {
     switch(state) {
@@ -110,9 +100,6 @@ PrefDialog::streamNotify(psc::snd::PulseStreamState state)
     default:
         break;
     }
-    if (state == psc::snd::PulseStreamState::ready) {
-    }
-
 }
 
 
@@ -126,7 +113,6 @@ PrefDialog::show(GlSceneWindow* sceneWindow)
         PrefDialog* prefDialog;
         refBuilder->get_widget_derived("pref-dlg", prefDialog, sceneWindow->getPlaneGeometry());
         if (prefDialog) {
-            auto planeGeometry = sceneWindow->getPlaneGeometry();
             prefDialog->set_transient_for(*sceneWindow);
             int ret = prefDialog->run();
             auto keyConfig = sceneWindow->getKeyConfig();
@@ -134,10 +120,8 @@ PrefDialog::show(GlSceneWindow* sceneWindow)
                 sceneWindow->saveConfig();
             }
             else {
-                double maxLevel = keyConfig->getDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::SCALE_KEY, 1.0);
-                planeGeometry->setScale(maxLevel);
-                planeGeometry->setKeepSum(keyConfig->getBoolean(GlSceneWindow::MAIN_SECTION, GlSceneWindow::KEEP_SUM_KEY, false));
-            }
+                sceneWindow->restoreConfig();
+          }
             delete prefDialog;
         }
         else {
