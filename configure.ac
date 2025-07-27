@@ -23,7 +23,7 @@ PKG_CHECK_MODULES(ALSA,[alsa, fftw3, libpulse, libpulse-mainloop-glib])
 PKG_CHECK_MODULES(GTHREAD,gthread-2.0)
 
 PKG_CHECK_MODULES([GENERICGLM], [genericglm >= 0.3.2])
-PKG_CHECK_MODULES([GENERICIMG], [genericimg >= 0.3.7])
+PKG_CHECK_MODULES([GENERICIMG], [genericimg >= 0.4.5])
 
 dnl don't repeat previous dependencies
 

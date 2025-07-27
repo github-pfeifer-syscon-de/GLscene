@@ -106,5 +106,13 @@ ChunkedArray<T>::getChannels() const
     return m_channels;
 }
 
+template<typename T>
+double
+ChunkedArray<T>::getInputScale() const
+{
+    // in practice using normalized input leaves only a very small signal
+    return 1.0 / static_cast<double>(std::numeric_limits<T>::max() / 64);
+}
+
 // instantiate with the most likely type
 template class ChunkedArray<int16_t>;

@@ -26,7 +26,13 @@ class Row
 public:
     Row(GeometryContext *_ctx, uint32_t _n);
     virtual ~Row() = default;
-    void build(const psc::mem::active_ptr<Row>& prev, float z, float min, float step, const std::vector<float>& values);
+    void build(
+              const psc::mem::active_ptr<Row>& prev
+            , float z
+            , float min
+            , float stepX
+            , float stepZ
+            , const std::vector<float>& values);
     Position get(uint32_t i);
 
     static constexpr auto MAX_Y{4.5f};

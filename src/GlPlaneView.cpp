@@ -46,13 +46,13 @@ GlPlaneView::~GlPlaneView()
 Position
 GlPlaneView::getIntialPosition()
 {
-    return Position(0.0f,12.0f,18.0f);
+    return Position(0.0f,12.0f,12.0f);
 }
 
 Rotational
 GlPlaneView::getInitalAngleDegree()
 {
-    return Rotational(-25.0f, 0.0f, 0.0f);
+    return Rotational(-40.0f, 0.0f, 0.0f);
 }
 
 guint32 GlPlaneView::getAnimationMs()
@@ -91,7 +91,6 @@ GlPlaneView::init(Gtk::GLArea *glArea)
     m_naviGlArea = (NaviGlArea *)glArea;
     //std::cout << "GlPlaneView::init"  << std::boolalpha << glArea->get_double_buffered() << std::endl;
     glArea->set_double_buffered(false);     // reduce effort for animation, runs smoother
-    m_planePane = new PlaneGeometry(m_planeContext);
     psc::gl::checkError("plane createVao");
     m_glSceneWindow->restoreConfig();
     //std::cout << "geo vert: " << m_plane->getNumVertex()
@@ -170,9 +169,6 @@ GlPlaneView::unrealize()
 {
     if (m_planeContext) {
         delete m_planeContext;
-    }
-    if (m_planePane) {
-        delete m_planePane;
     }
     if (m_smokeContext){
         delete m_smokeContext;
@@ -262,8 +258,29 @@ GlPlaneView::on_click_select(GdkEventButton* event, float mx, float my)
     return selected;
 }
 
-PlaneGeometry*
+std::shared_ptr<PlaneGeometry>
 GlPlaneView::getPlaneGeometry()
 {
     return m_planePane;
+}
+
+std::string
+GlPlaneView::getMovement()
+{
+    return m_movement;
+}
+
+void
+GlPlaneView::setMovement(const std::string& movement)
+{
+    if (m_movement != movement) {
+        auto keyConfig = m_glSceneWindow->getKeyConfig();
+        if (m_movement == "B") {
+            m_planePane = std::make_shared<BackwardPlaneGeometry>(m_planeContext, keyConfig);
+        }
+        else {
+            m_planePane = std::make_shared<ForwardPlaneGeometry>(m_planeContext, keyConfig);
+        }
+    }
+    m_movement = movement;
 }

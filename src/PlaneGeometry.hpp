@@ -21,24 +21,32 @@
 #include <epoxy/gl.h>
 #include <list>
 #include <Geom2.hpp>
+#include <KeyConfig.hpp>
 
 #include "PlaneContext.hpp"
 #include "Row.hpp"
 #include "Fft.hpp"
 #include "Pulse.hpp"
 
-class PlaneGeometry  {
+class AudioListener
+{
 public:
-    PlaneGeometry(PlaneContext *_ctx);
+    virtual void notifyAudio(const std::vector<double>& fft) = 0;
+};
+
+class PlaneGeometry
+{
+public:
+    PlaneGeometry(PlaneContext *_ctx, const std::shared_ptr<KeyConfig>& keyConfig);
     virtual ~PlaneGeometry() = default;
     float getStep();
-    void build();
-    void advance(gint64 time);
-    psc::mem::active_ptr<Row> getFrontRow();
+    virtual void build() = 0;
+    virtual void advance(gint64 time) = 0;
+    virtual psc::mem::active_ptr<Row> getFrontRow() = 0;
     std::list<psc::gl::aptrGeom2> getMidRows();
-    psc::mem::active_ptr<Row> getBackRow();
-    float getFrontAlpha();
-    float getBackAlpha();
+    virtual psc::mem::active_ptr<Row> getBackRow() = 0;
+    virtual float getFrontAlpha() = 0;
+    virtual float getBackAlpha() = 0;
     static constexpr auto PLANE_TILES{40u};   // was 40
     static constexpr auto Z_MIN{-10.0f};
     static constexpr auto Z_MAX{10.0f};
@@ -53,26 +61,76 @@ public:
     void setScaleMode(const std::string& scaleMode);
     double getAudioUsageRate();
     void setAudioUsageRate(double useRate);
-
-
+    void saveConfig();
+    void restoreConfig();
+    std::vector<double> getAudioAsArray();
     std::shared_ptr<psc::snd::PulseCtx> getPulseContext();
+    void addAudioListener(AudioListener* audioListener);
+    void removeAudioListener(AudioListener* audioListener);
 protected:
     float getZat(float z);
-private:
+    std::vector<float> buildValues();
+
     PlaneContext *ctx;
+    std::shared_ptr<KeyConfig> m_keyConfig;
     std::list<psc::mem::active_ptr<Row>> rows;
     int32_t lastms;
-    psc::mem::active_ptr<Row> m_frontRow;
-    psc::mem::active_ptr<Row> m_backRow;
-    float m_frontAlpha;
-    float m_backAlpha;
     gint64 m_startTime{-1l};
-    std::shared_ptr<Fft2k1k> m_fft;
+    std::shared_ptr<Fft512> m_fft;
+    std::shared_ptr<Spectrum<512>> m_spec;
     std::shared_ptr<psc::snd::PulseCtx> m_pulseCtx;
     std::shared_ptr<psc::snd::PulseIn> m_pulseIn;
     double m_scale{1.0};
     bool m_keepSum{false};
     std::string m_scaleMode;
     double m_audioUsageRate{0.5};
+    AudioListener* m_audioListener{nullptr};
 };
 
+// this is expected to look like we are traveling forward
+class ForwardPlaneGeometry
+: public PlaneGeometry
+{
+public:
+    ForwardPlaneGeometry(PlaneContext *_ctx, const std::shared_ptr<KeyConfig>& keyConfig);
+    virtual ~ForwardPlaneGeometry() = default;
+
+    void advance(gint64 time) override;
+    psc::mem::active_ptr<Row> getFrontRow() override;
+    psc::mem::active_ptr<Row> getBackRow() override;
+    float getFrontAlpha() override;
+    float getBackAlpha() override;
+    void build() override;
+
+
+
+protected:
+    psc::mem::active_ptr<Row> m_frontRow;
+    psc::mem::active_ptr<Row> m_backRow;
+    float m_frontAlpha;
+    float m_backAlpha;
+
+};
+
+// and the other way around
+class BackwardPlaneGeometry
+: public PlaneGeometry
+{
+public:
+    BackwardPlaneGeometry(PlaneContext *_ctx, const std::shared_ptr<KeyConfig>& keyConfig);
+    virtual ~BackwardPlaneGeometry() = default;
+
+    void advance(gint64 time) override;
+    psc::mem::active_ptr<Row> getFrontRow() override;
+    psc::mem::active_ptr<Row> getBackRow() override;
+    float getFrontAlpha() override;
+    float getBackAlpha() override;
+    void build() override;
+
+protected:
+    psc::mem::active_ptr<Row> m_frontRow;
+    psc::mem::active_ptr<Row> m_backRow;
+    float m_frontAlpha;
+    float m_backAlpha;
+
+};

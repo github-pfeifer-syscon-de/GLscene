@@ -18,35 +18,36 @@
 
 #pragma once
 
-#include <string_view>
-#include <string>
-#include <vector>
 #include <cstdint>
+#include <memory>
+#include <cmath>
+#include <vector>
+#include <complex>
 
-#include <alsa/asoundlib.h>
+#include "ChunkedArray.hpp"
 
-// Just as reference using Alsa
-
-class Capture
+template <uint32_t windowSize>
+class CooleyTukey
 {
 public:
-    Capture(std::string_view dev, uint32_t outSize);
-    explicit Capture(const Capture& orig) = delete;
-    virtual ~Capture();
-    [[nodiscard]]
-    std::vector<float> read();
+    CooleyTukey();
+    explicit CooleyTukey(const CooleyTukey& orig) = delete;
+    virtual ~CooleyTukey() = default;
 
-    static constexpr snd_pcm_format_t format{SND_PCM_FORMAT_S16_LE};
-    static constexpr long buffer_frames{4410};
-    unsigned int rate{44100};
-    static constexpr unsigned int channels{1};
-    std::vector<float> fft(const std::vector<float>& data);
+    std::vector<float> execute(const ChunkedArray<int16_t>& in);
+
 
 protected:
-    snd_pcm_t* init();
+    static constexpr auto TWO_PI = static_cast<float>(M_PI * 2.0);
+    static constexpr auto TWO_PI_N = TWO_PI / static_cast<float>(windowSize);
+    static constexpr auto LOGN{std::log2(windowSize)}; /* log N (base 2) */
+    std::vector<float> m_hamming;
+    std::vector<uint32_t> m_reversed;
+    std::vector<std::complex<float>> m_roots;
+    int bit_reverse(int x);
+    const uint32_t hopSize = windowSize;
+    std::vector<float> m_normHamming;
 private:
-    const uint32_t m_outSize;
-    std::string m_dev;
-    snd_pcm_t* m_capture_handle{};
+
 };
 

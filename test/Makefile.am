@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-# patest left for manual test 
+# patest left for manual test
 TESTS = fft_test
 
 AM_CPPFLAGS = \
@@ -27,6 +27,8 @@ fft_test_LDADD =  \
 	$(ALSA_LIBS)
 
 fft_test_SOURCES = \
+    CooleyTukey.cpp \
+    fft.cc \
     fft_test.cpp
 
 patest_LDADD =  \

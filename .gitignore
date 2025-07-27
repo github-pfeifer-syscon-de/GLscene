@@ -80,3 +80,4 @@
 /test/test.hist
 /src/configure.ac
 /pkg/
+/test/fft.cc

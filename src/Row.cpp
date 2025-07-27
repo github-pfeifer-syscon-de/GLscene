@@ -70,7 +70,8 @@ void
 Row::build(const psc::mem::active_ptr<Row>& prev
           , float z
           , float min
-          , float step
+          , float stepX
+          , float stepZ
           , const std::vector<float>& values)
 {
     setScalePos(PlaneGeometry::X_OFFS, 0.0f, z, 1.0f);
@@ -80,7 +81,7 @@ Row::build(const psc::mem::active_ptr<Row>& prev
     auto lPrev = prev.lease();
     std::vector<Position> prevs;
     for (uint32_t x = 0; x < m_n; ++x) {
-        float xp = getXat(x, step);
+        float xp = getXat(x, stepX);
         //float yp = getY(prev, x);
         float yp = values[x];
         float zp = 0.0f;
@@ -89,12 +90,12 @@ Row::build(const psc::mem::active_ptr<Row>& prev
         Position prevPos;
         if (lPrev) {
             prevPos = lPrev->get(x);   // as we want to connect to previous need to store coord here as well
-            prevPos.z += step;
+            prevPos.z += stepZ;
         }
         else {
             prevPos.x = xp;
             prevPos.y = 0.0f;
-            prevPos.z = step;
+            prevPos.z = stepZ;
         }
         prevs.emplace_back(std::move(prevPos));
     }
@@ -107,7 +108,13 @@ Row::build(const psc::mem::active_ptr<Row>& prev
             next = m_pos[x+1];
         }
 
-        auto norm = glm::triangleNormal(pos, next, pre);
+        Vector norm;
+        if (stepZ >= 0.0f) {
+            norm = glm::triangleNormal(pos, next, pre);
+        }
+        else {
+            norm = glm::triangleNormal(pos, pre, next);
+        }
         addPoint(&pos, &color, &norm, nullptr);
         addPoint(&pre, &color, &norm, nullptr);
     }

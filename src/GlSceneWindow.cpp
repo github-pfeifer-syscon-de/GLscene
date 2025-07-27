@@ -34,26 +34,99 @@ GlSceneWindow::GlSceneWindow(GlSceneApp* application)
 
     m_keyConfig = std::make_shared<KeyConfig>("glscene.conf");
     add_action("preferences", sigc::mem_fun(this, &GlSceneWindow::on_action_preferences));
+    add_action("plot", sigc::mem_fun(this, &GlSceneWindow::on_action_plot));
     m_planView = new GlPlaneView(this);
     auto planeView = Gtk::manage(new NaviGlArea(m_planView));
     add(*planeView);
     //set_decorated(FALSE);
-    set_default_size(640, 480);
+    set_default_size(480, 320);
     show_all_children();
 }
 
- GlSceneWindow::~GlSceneWindow()
- {
-     if (m_planView) {
-         delete m_planView;
-         m_planView = nullptr;
-     }
- }
+GlSceneWindow::~GlSceneWindow()
+{
+    if (m_planView) {
+        delete m_planView;
+        m_planView = nullptr;
+    }
+}
+
+class PlotHamm
+: public psc::ui::PlotFunction
+{
+public:
+    PlotHamm(double xMin, double xMax)
+    : PlotFunction(xMin, xMax)
+    {
+    }
+    explicit PlotHamm(const PlotHamm& orig) = delete;
+    virtual ~PlotHamm() = default;
+
+    // to check hamming functions
+    double calculate(double x)
+    {
+        //return x * x;
+        //auto HAMMING_OFFS{0.53836};
+        //auto HAMMING_FACTOR{0.46164};
+        auto end = 2.0 * M_PI / xAxis.getMax();
+        //return HAMMING_OFFS - (HAMMING_FACTOR * std::cos( (x * end)));
+
+        return 1.0 - 0.85 * std::cos(x * end);
+    }
+};
+
+PlotAudio::PlotAudio(const std::shared_ptr<PlaneGeometry>& geom, double upperFreq)
+: PlotDiscrete(std::vector<double>())
+, m_upperFreq{upperFreq}
+, m_geom{geom}
+{
+    geom->addAudioListener(this);
+}
+
+PlotAudio::~PlotAudio()
+{
+    m_geom->removeAudioListener(this);
+}
+
+void
+PlotAudio::notifyAudio(const std::vector<double>& values)
+{
+    if (m_plotDrawing && m_plotDrawing->isActive()) {
+#       ifdef DEBUG
+        std::cout << "PlotAudio::notifyAudio " << values.size() << std::endl;
+#       endif
+        m_hzPerSlot = m_upperFreq / static_cast<double>(values.size());
+        m_values = values;
+        m_plotDrawing->refresh();
+    }
+}
+
+Glib::ustring
+PlotAudio::getLabel(size_t idx)
+{
+    size_t markAt = static_cast<size_t>(MARK_HZ / m_hzPerSlot);
+    if (idx % markAt == 0) {
+        size_t hz = static_cast<size_t>(static_cast<double>(idx) * m_hzPerSlot);
+        return Glib::ustring::sprintf("%dk", hz / 1000);
+    }
+    return "";
+}
+
+
 
 void
 GlSceneWindow::on_action_preferences()
 {
     PrefDialog::show(this);
+}
+
+void
+GlSceneWindow::on_action_plot()
+{
+    //auto func{std::make_shared<PlotHamm>(0.0, 100.0)};
+    auto geom = m_planView->getPlaneGeometry();
+    auto func{std::make_shared<PlotAudio>(geom, 22050.0)};
+    psc::ui::Plot::show(this, func);
 }
 
 Gtk::Application*
@@ -62,10 +135,16 @@ GlSceneWindow::getApplicaiton()
     return m_application;
 }
 
-PlaneGeometry*
+std::shared_ptr<PlaneGeometry>
 GlSceneWindow::getPlaneGeometry()
 {
     return m_planView->getPlaneGeometry();
+}
+
+GlPlaneView*
+GlSceneWindow::getPlaneView()
+{
+    return m_planView;
 }
 
 std::shared_ptr<KeyConfig>
@@ -78,10 +157,8 @@ void
 GlSceneWindow::saveConfig()
 {
     auto planGeom = m_planView->getPlaneGeometry();
-    m_keyConfig->setDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::SCALE_KEY, planGeom->getScale());
-    m_keyConfig->setBoolean(GlSceneWindow::MAIN_SECTION, GlSceneWindow::KEEP_SUM_KEY, planGeom->isKeepSum());
-    m_keyConfig->setDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::FREQ_USE_KEY, planGeom->getAudioUsageRate());
-    m_keyConfig->setString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::FREQ_SCALE_MODE_KEY, planGeom->getScaleMode());
+    planGeom->saveConfig();
+    m_keyConfig->setString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MOVEMENT_KEY, m_planView->getMovement());
 
     m_keyConfig->saveConfig();
 }
@@ -89,9 +166,8 @@ GlSceneWindow::saveConfig()
 void
 GlSceneWindow::restoreConfig()
 {
+    // keep this as first as the remaing depends on this
+    m_planView->setMovement(m_keyConfig->getString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MOVEMENT_KEY, "F"));
     auto planGeom = m_planView->getPlaneGeometry();
-    planGeom->setScale(m_keyConfig->getDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::SCALE_KEY, 1.0));
-    planGeom->setKeepSum(m_keyConfig->getBoolean(GlSceneWindow::MAIN_SECTION, GlSceneWindow::KEEP_SUM_KEY, false));
-    planGeom->setAudioUsageRate(m_keyConfig->getDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::FREQ_USE_KEY, 0.5));
-    planGeom->setScaleMode(m_keyConfig->getString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::FREQ_SCALE_MODE_KEY, "L"));
+    planGeom->restoreConfig();
 }

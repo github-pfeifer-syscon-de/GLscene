@@ -21,12 +21,14 @@
 #include <cmath>
 #include <limits>
 #include <algorithm>
-#define REAL 0
-#define IMAG 1
 
 
 #include "Fft.hpp"
 #include "config.h"
+
+template <uint32_t windowSize>
+std::vector<size_t>
+Spectrum<windowSize>::m_lookup;
 
 template <uint32_t windowSize>
 Spectrum<windowSize>::Spectrum()
@@ -48,10 +50,22 @@ template <uint32_t windowSize>
 void
 Spectrum<windowSize>::add(fftw_complex* fft_result)
 {
+    // Copy the first (windowSize/2 + 1) data points into your spectrogram.
+    // We do this because the FFT output is mirrored about the nyquist
+    // frequency, so the second half of the data is redundant.
     // include a first correction with the factor we know, so the sum will not grow too fast
     for (size_t i = 0; i < m_sum.size(); i++) {
-        auto abs = std::sqrt(fft_result[i][REAL] * fft_result[i][REAL] + fft_result[i][IMAG] * fft_result[i][IMAG]);
-        m_sum[i] += abs * m_addScale;      // keep double as long as possible
+        auto abs = std::sqrt(fft_result[i][Fft<windowSize>::REAL] * fft_result[i][Fft<windowSize>::REAL] + fft_result[i][Fft<windowSize>::IMAG] * fft_result[i][Fft<windowSize>::IMAG]);
+        auto scale = m_addScale;
+        if (i < m_sum.size() -1) {
+            scale *= 2.0;
+        }
+        //if (i >= 11 && i <= 14) {
+        //    std::cout << "add " << i
+        //              << " abs " << abs
+        //              << " scale " << scale << std::endl;
+        //}
+        m_sum[i] += abs * scale / static_cast<double>(windowSize);      // keep double as long as possible
     }
 }
 
@@ -59,11 +73,12 @@ template <uint32_t windowSize>
 void
 Spectrum<windowSize>::scale(double nScale)
 {
+#   ifdef DEBUG
+    std::cout << "Spectrum::scale"
+    //          << " sum " << m_sum[i]
+              << " by " << nScale << std::endl;
+#   endif
     for (size_t i = 0; i < m_sum.size(); i++) {
-        //std::cout << "Spectrum::scale"
-        //          << " i " << i
-        //          << " sum " << m_sum[i]
-        //          << " by " << nScale << std::endl;
         m_sum[i] *= nScale;
     }
 }
@@ -72,7 +87,7 @@ template <uint32_t windowSize>
 double
 Spectrum<windowSize>::getMax()
 {
-    //double max{std::numeric_limits<double>::min()};
+    //double max{std::numeric_limits<double>::lowest()};
     //for (size_t i = 0; i < m_sum.size(); i++) {
     //    max = std::max(max, m_sum[i]);
     //}
@@ -91,13 +106,13 @@ Spectrum<windowSize>::adjustLin(size_t cnt, double usageFactor, double factor, b
 {
     std::vector<float> fout;
     fout.resize(cnt);
-    std::ranges::fill(fout, 0.0);
+    std::ranges::fill(fout, 0.0f);
     const size_t sumSize = static_cast<size_t>(static_cast<double>(m_sum.size()) * usageFactor);
     double factorLin = static_cast<double>(cnt) / static_cast<double>(sumSize);
     std::vector<size_t> binCnt;
     binCnt.resize(cnt);
     std::ranges::fill(binCnt, 0);
-    double maxIn{std::numeric_limits<double>::min()};
+    double maxIn{std::numeric_limits<double>::lowest()};
     for (size_t i = 0; i < sumSize; ++i) {
         auto n = static_cast<size_t>(static_cast<double>(i) * factorLin);
         fout[n] += static_cast<float>(m_sum[i] * factor);
@@ -148,7 +163,7 @@ Spectrum<windowSize>::adjustLog(size_t cnt, double usageFactor, double factor, b
     std::vector<size_t> binCnt;
     binCnt.resize(cnt);
     std::ranges::fill(binCnt, 0);
-    double maxIn{std::numeric_limits<double>::min()};
+    double maxIn{std::numeric_limits<double>::lowest()};
     for (size_t i = 0; i < sumSize; ++i) {
         auto n = std::min(static_cast<size_t>(std::log10(1.0 + static_cast<double>(i) * factorLog) * static_cast<double>(cnt)), static_cast<size_t>(cnt-1));
         fout[n] = std::max(fout[n], static_cast<float>(m_sum[i] * factor));
@@ -156,7 +171,9 @@ Spectrum<windowSize>::adjustLog(size_t cnt, double usageFactor, double factor, b
         maxIn = std::max(maxIn, m_sum[i]);
     }
     if (maxIn < 0.0001) {
+#       ifdef DEBUG
         std::cout << "Spectrum::adjustLog silence " << maxIn << std::endl;
+#       endif
         return fout;        // dont scale silence up
     }
     float maxOut{std::numeric_limits<float>::min()};
@@ -181,23 +198,84 @@ Spectrum<windowSize>::adjustLog(size_t cnt, double usageFactor, double factor, b
 }
 
 
+
+// need template instantiation
+template class Spectrum<2048u>;
+
+template class Spectrum<512u>;
+
+SignalGenerator::SignalGenerator()
+: m_scale{static_cast<float>(std::numeric_limits<int16_t>::max())}
+{
+}
+
+float
+SignalGenerator::getScale()
+{
+    return m_scale;
+}
+
+void
+SignalGenerator::setScale(float scale)
+{
+    m_scale = scale;
+}
+
+SinusSignal::SinusSignal()
+: SignalGenerator()
+{
+}
+
 ChunkedArray<int16_t>
 SinusSignal::generate(size_t samples, float period)
 {
-    std::cout << "createData"
+#   ifdef DEBUG
+    std::cout << "SinusSignal::generate"
               << " samples " << samples
-              << " min " << std::numeric_limits<int16_t>::min()
-              << " max " <<  std::numeric_limits<int16_t>::max()
-              << " cd freq~ " << 44100.0f/period << "Hz" << std::endl;
+              << " scale " << m_scale  << std::endl;
+#   endif
     ChunkedArray<int16_t> data{1};
     float end{static_cast<float>(M_PI * 2.0) / period};
     const size_t blocking{2000};
+    const auto scale = getScale();
     for (uint32_t i = 0; i < samples; i += blocking) {
         auto row = std::make_shared<std::vector<int16_t>>();
         row->reserve(blocking);
         for (uint32_t j = 0; j < std::min(static_cast<size_t>(blocking), samples-i); ++j) {
             float x = static_cast<float>(i+j) * end;
-            float y = std::sinf(x) * static_cast<float>(std::numeric_limits<int16_t>::max());
+            float y = std::sinf(x) * scale;
+            //std::cout << "i " << i << " x " << x << " y " << y << std::endl;
+            row->push_back(static_cast<int16_t>(y));
+        }
+        data.add(row);
+    }
+    return data;
+}
+
+SquareSignal::SquareSignal()
+: SignalGenerator()
+{
+}
+
+ChunkedArray<int16_t>
+SquareSignal::generate(size_t samples, float period)
+{
+#   ifdef DEBUG
+    std::cout << "SquareSignal::generate"
+              << " samples " << samples
+              << " scale " << m_scale << std::endl;
+#   endif
+    ChunkedArray<int16_t> data{1};
+    int iperiod = static_cast<int>(period);
+    int iperiod2{ iperiod / 2};
+    const size_t blocking{2000};
+    const auto scale = getScale();
+    for (uint32_t i = 0; i < samples; i += blocking) {
+        auto row = std::make_shared<std::vector<int16_t>>();
+        row->reserve(blocking);
+        for (uint32_t j = 0; j < std::min(static_cast<size_t>(blocking), samples-i); ++j) {
+            int x = (i+j) % iperiod;
+            float y = (x <= iperiod2 ? 1.0f : -1.0f)  * scale;
             //std::cout << "i " << i << " x " << x << " y " << y << std::endl;
             row->push_back(static_cast<int16_t>(y));
         }
@@ -207,13 +285,14 @@ SinusSignal::generate(size_t samples, float period)
 }
 
 
-template <uint32_t windowSize, uint32_t hopSize>
-Fft<windowSize, hopSize>::Fft(const std::shared_ptr<WindowFunction<windowSize>>& windowFunction)
+
+template <uint32_t windowSize>
+Fft<windowSize>::Fft(const std::shared_ptr<WindowFunction<windowSize>>& windowFunction)
 : m_windowFunction{windowFunction}
 {
-    m_data = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * windowSize);
+    m_fft_input = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * windowSize);
     m_fft_result = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * windowSize);
-    m_plan_forward = fftw_plan_dft_1d(windowSize, m_data, m_fft_result, FFTW_FORWARD, FFTW_ESTIMATE);
+    m_plan_forward = fftw_plan_dft_1d(windowSize, m_fft_input, m_fft_result, FFTW_FORWARD, FFTW_ESTIMATE);
     // others use e.g. https://github.com/GatzeTech/Qt-FFTW/blob/main/mainwindow.cpp
     //mFftIn  = fftw_alloc_real(NUM_SAMPLES);
     //mFftOut = fftw_alloc_real(NUM_SAMPLES);
@@ -221,13 +300,13 @@ Fft<windowSize, hopSize>::Fft(const std::shared_ptr<WindowFunction<windowSize>>&
 
 }
 
-template <uint32_t windowSize, uint32_t hopSize>
-Fft<windowSize, hopSize>::~Fft()
+template <uint32_t windowSize>
+Fft<windowSize>::~Fft()
 {
     fftw_destroy_plan(m_plan_forward);
-    if (m_data) {
-        fftw_free(m_data);
-        m_data = nullptr;
+    if (m_fft_input) {
+        fftw_free(m_fft_input);
+        m_fft_input = nullptr;
     }
     if (m_fft_result) {
         fftw_free(m_fft_result);
@@ -235,9 +314,9 @@ Fft<windowSize, hopSize>::~Fft()
     }
 }
 
-template <uint32_t windowSize, uint32_t hopSize>
+template <uint32_t windowSize>
 std::shared_ptr<Spectrum<windowSize>>
-Fft<windowSize, hopSize>::execute(const ChunkedArray<int16_t>& in)
+Fft<windowSize>::execute(const ChunkedArray<int16_t>& in)
 {
     auto spectrum = std::make_shared<Spectrum<windowSize>>();
     if (in.empty()) {
@@ -256,84 +335,108 @@ Fft<windowSize, hopSize>::execute(const ChunkedArray<int16_t>& in)
     //auto nScale = 1.0 / std::sqrt(static_cast<double>(windowSize));
                          //  * static_cast<double>(std::numeric_limits<int16_t>::max()));      // since we want output not depend on on used input (and here it's simpler to apply than on input with the same result)
 
-    spectrum->setAddScale(m_scale );    // * nScale
+    spectrum->setAddScale(m_scale);    // * nScale
     // Process each chunk of the signal
-    while (chunkPosition < in.size() && !bStopReadChunks) {   // signal
+    const auto inputScale = in.getInputScale();
+    uint32_t filled{};
+    double maxIn1{std::numeric_limits<double>::lowest()};
+    [[maybe_unused]]
+    double maxIn2{std::numeric_limits<double>::lowest()};
+    // only use the parts that are fully usable, to avoid the uncertainty when padding (-> try to stabilize the output levels)
+    while (chunkPosition < in.size() - windowSize - 1 && !bStopReadChunks) {   // use only complete windows (inaccurate, waters down max values)
         // Copy the chunk into our buffer
         for (size_t i = 0; i < windowSize; i++) {
             size_t readIndex = chunkPosition + i;
             if (readIndex < in.size()) {    // signal
-                m_data[i][REAL] = in[readIndex] * m_windowFunction->windowing(i);  // signal
-                m_data[i][IMAG] = 0.0;
+                auto v = static_cast<double>(in[readIndex] * inputScale);  // signal
+                maxIn1 = std::max(maxIn1, v);
+                auto w = v * m_windowFunction->windowing(i);
+                maxIn2 = std::max(maxIn2, w);
+                m_fft_input[i][REAL] = w;
+                m_fft_input[i][IMAG] = 0.0;
             }
             else {
                 // we have read beyond the signal, so zero-pad it!
-                m_data[i][REAL] = 0.0;
-                m_data[i][IMAG] = 0.0;
+                m_fft_input[i][REAL] = 0.0;
+                m_fft_input[i][IMAG] = 0.0;
                 bStopReadChunks = true;
+                ++filled;
             }
         }
         // Perform the FFT on our chunk
         fftw_execute(m_plan_forward);
-        // Copy the first (windowSize/2 + 1) data points into your spectrogram.
-        // We do this because the FFT output is mirrored about the nyquist
-        // frequency, so the second half of the data is redundant.
         spectrum->add(m_fft_result);
-        chunkPosition += hopSize;
+        chunkPosition += m_hopSize;
         numChunks++;
     }
-    auto chunkScale = 1.0 / (static_cast<double>(numChunks));   // undo effect of sliding window
+    auto chunkScale = 1.0 / (static_cast<double>(numChunks));   // undo effect of sliding window (reduce by windowing)
     //chunkScale *= m_scale;
     spectrum->scale(chunkScale);
 #   ifdef DEBUG
     std::cout << "Fft::execute"
-              << " min freq (4 cd) " << 44100/windowSize << "Hz"
+            //  << " min freq (4 cd) " << 44100/windowSize << "Hz"
               << " set scale " << m_scale
-              << " chunkScale " << chunkScale
+              << " maxIn1 " << maxIn1
+              << " maxIn2 " << maxIn2
+              << " filled " << filled
               << " chunks " << numChunks << std::endl;
 #   endif
     return spectrum;
 }
 
-template <uint32_t windowSize, uint32_t hopSize>
+template <uint32_t windowSize>
 double
-Fft<windowSize, hopSize>::calibrate(double to)
+Fft<windowSize>::calibrate(double to)
 {
     setScale(1.0);
     SinusSignal sig;
     ChunkedArray<int16_t> in = sig.generate(8000, 44100.0f/1000.0f);    // ~ 1kHz for Cd
     auto spec = execute(in);
     double factor = to / spec->getMax();
+#   ifdef DEBUG
     std::cout << "Fft::calibrate"
               << " max " << spec->getMax()
               << " to " << to
               << " resulting factor " << factor << std::endl;
+#   endif
     setScale(factor);
     return getScale();
 }
 
-template <uint32_t windowSize, uint32_t hopSize>
+template <uint32_t windowSize>
 double
-Fft<windowSize, hopSize>::getScale()
+Fft<windowSize>::getScale()
 {
     return m_scale;
 }
 
-template <uint32_t windowSize, uint32_t hopSize>
+template <uint32_t windowSize>
 void
-Fft<windowSize, hopSize>::setScale(double scale)
+Fft<windowSize>::setScale(double scale)
 {
     m_scale = scale;
 }
 
+template <uint32_t windowSize>
+uint32_t
+Fft<windowSize>::getHopSize()
+{
+    return m_hopSize;
+}
+
+template <uint32_t windowSize>
+void
+Fft<windowSize>::setHopSize(uint32_t hopSize)
+{
+    m_hopSize = hopSize;
+}
 
 // need template instantiation
-template class Spectrum<2048u>;
+template class Fft<2048u>;
 
-// need template instantiation
-template class Fft<2048u,2048u>;
-
-template class Fft<2048u,1024u>;
+// maybe audacious is right, avoid the lowest frequencies,
+// as for modern music these are most prominent
+template class Fft<512u>;
 
 // only 4 testing
-template class Fft<256u,256u>;
+template class Fft<256u>;

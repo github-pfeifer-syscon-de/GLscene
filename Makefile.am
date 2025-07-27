@@ -10,6 +10,7 @@ dist_doc_DATA = \
 	INSTALL \
 	NEWS
 
+ACLOCAL_AMFLAGS = -I m4
 
 # Remove doc directory on uninstall
 uninstall-local:

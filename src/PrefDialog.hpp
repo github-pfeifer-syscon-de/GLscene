@@ -30,7 +30,7 @@ class PrefDialog
 , public psc::snd::PulseStreamNotify
 {
 public:
-    PrefDialog(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder, PlaneGeometry* planeGeometry);
+    PrefDialog(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder, GlSceneWindow* sceneWindow);
     virtual ~PrefDialog() = default;
 
     static void show(GlSceneWindow* sceneWindow);
@@ -38,15 +38,16 @@ public:
 protected:
     void signalGenToggel();
 private:
+    GlSceneWindow* m_sceneWindow;
     Gtk::Scale* m_maxLevel;
     Gtk::CheckButton* m_keepSum;
     Gtk::ToggleButton* m_signalGen;
     Gtk::Scale* m_frequency;
-    PlaneGeometry* m_planeGeometry;
-    std::shared_ptr<psc::snd::SineSource> m_source;
+    std::shared_ptr<psc::snd::AudioGenerator> m_source;
     std::shared_ptr<psc::snd::PulseOut> m_out;
     Gtk::Scale* m_volume;
     Gtk::Scale* m_freqUsage;
     Gtk::ComboBoxText* m_freqMode;
+    Gtk::ComboBoxText* m_movement;
 };
 

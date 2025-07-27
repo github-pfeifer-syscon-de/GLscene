@@ -23,12 +23,12 @@
 #include <memory>
 #include <cstdint>
 #include <array>
-//#include <complex.h>  seem not to work
+//#include <complex.h>  seems not to work
 #include <fftw3.h>
+#include <vector>
 
 #include "ChunkedArray.hpp"
 
-using fftw_complex = double[2];
 
 template <uint32_t windowSize = 2048u>
 class WindowFunction
@@ -85,6 +85,15 @@ class HammingWindow2k
 public:
 };
 
+template class HammingWindow<512u>;
+
+class HammingWindow512
+: public HammingWindow<512u>
+{
+public:
+};
+
+
 template <uint32_t windowSize = 2048u>
 class Spectrum
 {
@@ -96,29 +105,69 @@ public:
     // linear adjustment for frequency
     std::vector<float> adjustLin(size_t cnt, double usageFactor, double factor = 1.0, bool keepSum = false);
     // logarithmic adjustment for frequency
+    //   the db adjustment for level would be nice,
+    //   but we have to deal with changing levels (as we are on the end of the processing chain)
+    //     and the lib-fft functions i could not make a fixed connections from input-levels to output
     std::vector<float> adjustLog(size_t cnt, double usageFactor, double factor = 1.0, bool keepSum = false);
     void add(fftw_complex* fft_result);
     void scale(double nScale);
     double getMax();
     void setAddScale(double addScale);
+    std::vector<double>& getSum()
+    {
+        return m_sum;
+    }
+    void add(int32_t pos, float val)
+    {
+        m_sum[pos] += val;
+    }
+    std::vector<double> getVector()
+    {
+        return m_sum;
+    }
 private:
     std::vector<double> m_sum;
     double m_addScale{1.0};
+    static std::vector<size_t> m_lookup;
+
+};
+
+class SignalGenerator
+{
+public:
+    SignalGenerator();
+    virtual ~SignalGenerator() = default;
+
+    float getScale();
+    void setScale(float scale);
+
+    virtual ChunkedArray<int16_t> generate(size_t samples, float period) = 0;
+protected:
+    float m_scale;
 };
 
 class SinusSignal
+: public SignalGenerator
 {
 public:
-    SinusSignal() = default;
-    explicit SinusSignal(const SinusSignal& orig) = delete;
+    SinusSignal();
     virtual ~SinusSignal() = default;
 
-    ChunkedArray<int16_t> generate(size_t samples, float period);
+    ChunkedArray<int16_t> generate(size_t samples, float period) override;
+};
 
+class SquareSignal
+: public SignalGenerator
+{
+public:
+    SquareSignal();
+    virtual ~SquareSignal() = default;
+
+    ChunkedArray<int16_t> generate(size_t samples, float period) override;
 };
 
 
-template <uint32_t windowSize = 2048u, uint32_t hopSize = 2048u>
+template <uint32_t windowSize = 2048u>
 class Fft
 {
 public:
@@ -130,9 +179,16 @@ public:
     double calibrate(double to = 1.0);
     double getScale();
     void setScale(double scale);
+    uint32_t getHopSize();
+    void setHopSize(uint32_t hopSize);
+    static constexpr size_t REAL{0};
+    static constexpr size_t IMAG{1};
+
 protected:
+
 private:
-    fftw_complex* m_data{};
+    uint32_t m_hopSize{windowSize};
+    fftw_complex* m_fft_input{};
     fftw_complex* m_fft_result{};
     fftw_plan m_plan_forward;
 
@@ -141,35 +197,59 @@ private:
 };
 
 
-
-// fastes variant
-class Fft2k
-: public Fft<2048u, 2048u>
+class Fft512
+: public Fft<512u>
 {
 public:
-    Fft2k(const std::shared_ptr<WindowFunction<2048u>>& windowFunction)
-    : Fft(windowFunction)
+    Fft512()
+    : Fft{std::make_shared<HammingWindow512>()}
     {
     }
-    explicit Fft2k(const Fft2k& orig) = delete;
-    virtual ~Fft2k()
-    {
-    }
+    explicit Fft512(const Fft512& orig) = delete;
+    virtual ~Fft512() = default;
 
 };
 
-// well not meassurable faster, and not noteably more precise
-class Fft2k1k
-: public Fft<2048u, 1024u>
+
+class Fft512n256
+: public Fft<512u>
 {
 public:
-    Fft2k1k(const std::shared_ptr<WindowFunction<2048u>>& windowFunction)
-    : Fft(windowFunction)
+    Fft512n256()
+    : Fft{std::make_shared<HammingWindow512>()}
     {
+        setHopSize(256u);
+    }
+    explicit Fft512n256(const Fft512n256& orig) = delete;
+    virtual ~Fft512n256() = default;
+
+};
+
+// fastes variant
+class Fft2k
+: public Fft<2048u>
+{
+public:
+    Fft2k()
+    : Fft{std::make_shared<HammingWindow2k>()}
+    {
+    }
+    explicit Fft2k(const Fft2k& orig) = delete;
+    virtual ~Fft2k() = default;
+
+};
+
+// this is not meassurable faster, and not noteably more precise
+class Fft2k1k
+: public Fft<2048u>
+{
+public:
+    Fft2k1k()
+    : Fft{std::make_shared<HammingWindow2k>()}
+    {
+        setHopSize(1024u);
     }
     explicit Fft2k1k(const Fft2k1k& orig) = delete;
-    virtual ~Fft2k1k()
-    {
-    }
+    virtual ~Fft2k1k() = default;
 
 };

@@ -21,19 +21,19 @@
 #include "GlSceneWindow.hpp"
 #include "PlaneGeometry.hpp"
 
-PrefDialog::PrefDialog(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder, PlaneGeometry* planeGeometry)
+PrefDialog::PrefDialog(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder, GlSceneWindow* sceneWindow)
 : Gtk::Dialog(cobject)
-, m_planeGeometry{planeGeometry}
+, m_sceneWindow{sceneWindow}
 {
     builder->get_widget("maxLevel", m_maxLevel);
-    m_maxLevel->set_value(m_planeGeometry->getScale());
+    m_maxLevel->set_value(m_sceneWindow->getPlaneGeometry()->getScale());
     m_maxLevel->signal_value_changed().connect([this] {
-        m_planeGeometry->setScale(m_maxLevel->get_value());
+        m_sceneWindow->getPlaneGeometry()->setScale(m_maxLevel->get_value());
     });
     builder->get_widget("keepSum", m_keepSum);
-    m_keepSum->set_active(m_planeGeometry->isKeepSum());
+    m_keepSum->set_active(m_sceneWindow->getPlaneGeometry()->isKeepSum());
     m_keepSum->signal_toggled().connect([this] {
-        m_planeGeometry->setKeepSum(m_keepSum->get_active());
+        m_sceneWindow->getPlaneGeometry()->setKeepSum(m_keepSum->get_active());
     });
     builder->get_widget("signalGen", m_signalGen);
     m_signalGen->signal_toggled().connect(
@@ -51,17 +51,25 @@ PrefDialog::PrefDialog(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
         }
     });
     builder->get_widget("freqUsage", m_freqUsage);
-    m_freqUsage->set_value(m_planeGeometry->getAudioUsageRate());
+    m_freqUsage->set_value(m_sceneWindow->getPlaneGeometry()->getAudioUsageRate());
     m_freqUsage->signal_value_changed().connect([this] {
-        m_planeGeometry->setAudioUsageRate(m_freqUsage->get_value());
+        m_sceneWindow->getPlaneGeometry()->setAudioUsageRate(m_freqUsage->get_value());
     });
     builder->get_widget("freqMode", m_freqMode);
     m_freqMode->append("L", "Linear");
     m_freqMode->append("O", "Logarithmic");
-    m_freqMode->set_active_id(m_planeGeometry->getScaleMode());
+    m_freqMode->set_active_id(m_sceneWindow->getPlaneGeometry()->getScaleMode());
     m_freqMode->signal_changed().connect([this] {
-        m_planeGeometry->setScaleMode(m_freqMode->get_active_id());
+        m_sceneWindow->getPlaneGeometry()->setScaleMode(m_freqMode->get_active_id());
     });
+    builder->get_widget("movement", m_movement);
+    m_movement->append("F", "Forward");
+    m_movement->append("B", "Backward");
+    m_movement->set_active_id(m_sceneWindow->getPlaneView()->getMovement());
+    m_movement->signal_changed().connect([this] {
+        m_sceneWindow->getPlaneView()->setMovement(m_movement->get_active_id());
+    });
+
 }
 
 void
@@ -72,11 +80,12 @@ PrefDialog::signalGenToggel()
     m_signalGen->set_sensitive(false);  // avoid rapid changes
     if (m_signalGen->get_active()) {
         if (!m_source) {
-            m_source = std::make_shared<psc::snd::SineSource>();
+            m_source = std::make_shared<psc::snd::AudioGenerator>();
+            m_source->setShape(psc::snd::AudioShape::Sine);
             m_volume->set_value(m_source->getVolume());
         }
         if (!m_out || !m_out->isReady()) {
-            auto ctx = m_planeGeometry->getPulseContext();
+            auto ctx = m_sceneWindow->getPlaneGeometry()->getPulseContext();
             psc::snd::PulseFormat fmt;
             m_out = std::make_shared<psc::snd::PulseOut>(ctx, fmt, m_source);
             m_out->setWriteLong(false);
@@ -111,17 +120,16 @@ PrefDialog::show(GlSceneWindow* sceneWindow)
         auto appl = sceneWindow->getApplicaiton();
         refBuilder->add_from_resource(appl->get_resource_base_path() + "/prefs-dlg.ui");
         PrefDialog* prefDialog;
-        refBuilder->get_widget_derived("pref-dlg", prefDialog, sceneWindow->getPlaneGeometry());
+        refBuilder->get_widget_derived("pref-dlg", prefDialog, sceneWindow);
         if (prefDialog) {
             prefDialog->set_transient_for(*sceneWindow);
             int ret = prefDialog->run();
-            auto keyConfig = sceneWindow->getKeyConfig();
             if (ret == Gtk::ResponseType::RESPONSE_OK) {
                 sceneWindow->saveConfig();
             }
             else {
                 sceneWindow->restoreConfig();
-          }
+            }
             delete prefDialog;
         }
         else {
@@ -132,5 +140,4 @@ PrefDialog::show(GlSceneWindow* sceneWindow)
         std::cerr << "PrefDialog::show error loading pref-dlg.ui " << ex.what() << std::endl;
     }
     return;
-
 }

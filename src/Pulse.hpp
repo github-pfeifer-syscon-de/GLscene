@@ -19,7 +19,7 @@
 #pragma once
 
 #include <glibmm.h>
-#include <sigc++/sigc++.h>
+//#include <sigc++/sigc++.h>
 #include <pulse/pulseaudio.h>
 #include <pulse/glib-mainloop.h>
 
@@ -54,6 +54,9 @@ public:
     void drain();
     void disconnect();
     pa_context *getContext();
+    // keep this to get some insight how to get the bits out
+    void listSinks();
+    void listSamples();
 
 protected:
     Glib::RefPtr<Glib::MainContext> m_glibCtx;
@@ -121,6 +124,7 @@ public:
 
     void serverInfo(const pa_server_info *info) override;
     void addData(int16_t *data, size_t actualbytes) ;
+    void onStreamReady() override;
 
     ChunkedArray<int16_t> read();
 
@@ -143,14 +147,18 @@ protected:
     float m_volume{10.0};
 };
 
-class SineSource
+enum class AudioShape {
+      Sine
+    , Square
+};
+
+class AudioGenerator
 : public AudioSource
 {
 public:
-    SineSource() = default;
-    explicit SineSource(const SineSource& orig) = delete;
-    virtual ~SineSource() = default;
-
+    AudioGenerator() = default;
+    explicit AudioGenerator(const AudioGenerator& orig) = delete;
+    virtual ~AudioGenerator() = default;
     float getFrequency()
     {
         return m_freq;
@@ -159,9 +167,18 @@ public:
     {
         m_freq = freq;
     }
+    AudioShape getShape()
+    {
+        return m_shape;
+    }
+    void setShape(AudioShape shape)
+    {
+        m_shape = shape;
+    }
 
     void requestData(size_t samples, int16_t* buffer) override;
-private:
+protected:
+    AudioShape m_shape{AudioShape::Sine};
     float m_freq{441.0};
     size_t m_idx{};
 };

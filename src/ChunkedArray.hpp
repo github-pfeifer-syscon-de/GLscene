@@ -39,6 +39,7 @@ public:
     bool empty() const;
     size_t size() const;
     uint32_t getChannels() const;
+    double getInputScale() const; // use this to normalize input to -1..1
 private:
     uint32_t m_channels;
     size_t m_size{};

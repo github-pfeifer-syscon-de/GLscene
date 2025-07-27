@@ -19,13 +19,33 @@
 #pragma once
 
 #include <KeyConfig.hpp>
+#include <Plot.hpp>
 
 #include "GlPlaneView.hpp"
-
 
 class GlSceneApp;
 class GlPlaneView;
 class PlaneGeometry;
+
+
+class PlotAudio
+: public psc::ui::PlotDiscrete, AudioListener
+{
+public:
+    PlotAudio(const std::shared_ptr<PlaneGeometry>& geom, double upperFreq);
+    explicit PlotAudio(const PlotAudio& orig) = delete;
+    virtual ~PlotAudio();
+
+    void notifyAudio(const std::vector<double>& values);
+
+    static constexpr auto MARK_HZ{2000.0};
+    Glib::ustring getLabel(size_t idx) override;
+protected:
+    double m_upperFreq;
+    double m_hzPerSlot;
+    std::shared_ptr<PlaneGeometry> m_geom;
+};
+
 
 class GlSceneWindow : public Gtk::ApplicationWindow {
 public:
@@ -33,16 +53,20 @@ public:
     virtual ~GlSceneWindow() ;
 
     void on_action_preferences();
+    void on_action_plot();
     Gtk::Application* getApplicaiton();
-    PlaneGeometry* getPlaneGeometry();
+    std::shared_ptr<PlaneGeometry> getPlaneGeometry();
+    GlPlaneView* getPlaneView();
     std::shared_ptr<KeyConfig> getKeyConfig();
     void saveConfig();
     void restoreConfig();
+
     static constexpr auto MAIN_SECTION{"main"};
     static constexpr auto SCALE_KEY{"scaleY"};
     static constexpr auto KEEP_SUM_KEY{"keepSum"};
     static constexpr auto FREQ_USE_KEY{"frequUsage"};
     static constexpr auto FREQ_SCALE_MODE_KEY{"frequScaleMode"};
+    static constexpr auto MOVEMENT_KEY{"movement"};
 private:
     GlSceneApp* m_application;
     GlPlaneView* m_planView{nullptr};

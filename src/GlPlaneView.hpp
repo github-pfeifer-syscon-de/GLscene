@@ -43,13 +43,15 @@ public:
     void unrealize() override;
     void draw(Gtk::GLArea *glArea, Matrix &proj, Matrix &view) override;
     psc::gl::aptrGeom2 on_click_select(GdkEventButton* event, float mx, float my) override;
-    PlaneGeometry* getPlaneGeometry();
+    std::shared_ptr<PlaneGeometry> getPlaneGeometry();
+    std::string getMovement();
+    void setMovement(const std::string& movement);
 protected:
     static constexpr auto USE_TRANSPARENCY{true};
 private:
     NaviGlArea *m_naviGlArea;
     PlaneContext* m_planeContext{};
-    PlaneGeometry* m_planePane{};
+    std::shared_ptr<PlaneGeometry> m_planePane;
     std::shared_ptr<psc::gl::Font2> m_font;
     psc::mem::active_ptr<psc::gl::Text2> m_text;
     psc::mem::active_ptr<psc::gl::Text2> m_text1;
@@ -60,4 +62,5 @@ private:
     psc::mem::active_ptr<psc::gl::Geom2> m_smokePlane;
     Gtk::Application* m_application;
     GlSceneWindow* m_glSceneWindow;
+    std::string m_movement;
 };

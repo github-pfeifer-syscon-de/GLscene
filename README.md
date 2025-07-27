@@ -1,7 +1,8 @@
 To make this a bit more useful integrated a sound output capture,
-with fft-conversion....
+with fft-conversion (but still this is more or less some experiment ...)
 
-- requires Pulseaudio 
+- basic build instructions with genericImg
+- requires Pulseaudio
 - as the output levels may vary, use preferences to adjust display to taste
 - the conversion of fft-data may not be to everyones taste (linear is prefered at the moment)
 
