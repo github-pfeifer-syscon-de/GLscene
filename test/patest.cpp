@@ -10,7 +10,7 @@
 
 // Pulse audio testing
 //   beware this uses real in-/output
-//   for this reason it is not called by default
+//   for that reason it is not called by default
 
 TestApp::TestApp()
 : Gio::Application("de.pfeifer_syscon.pulseTest")
@@ -23,7 +23,7 @@ TestApp::start(const Glib::RefPtr<Glib::MainContext>& ctx)
     auto pulseCtx = std::make_shared<psc::snd::PulseCtx>(ctx);
     psc::snd::PulseFormat fmt;
     m_pulseIn = std::make_shared<psc::snd::PulseIn>(pulseCtx, fmt);
-    auto sineSource = std::make_shared<psc::snd::SineSource>(); //441
+    auto sineSource = std::make_shared<psc::snd::AudioGenerator>();
     sineSource->setFrequency(441.0f);
     m_pulseOut = std::make_shared<psc::snd::PulseOut>(pulseCtx, fmt, sineSource);
 }

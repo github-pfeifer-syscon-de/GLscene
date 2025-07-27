@@ -148,7 +148,7 @@ check_fftaud()
 
     start = std::chrono::steady_clock::now();
     //auto out = spec->adjustLin(16, 0.5);
-    spec = fft.exec_wiki(dataFft);
+    spec = fft.execute(dataFft);
     finish = std::chrono::steady_clock::now();
     elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
     std::cout << "cooleyTukey (wiki) duration " << elapsed_seconds << std::endl;
