@@ -157,7 +157,7 @@ Spectrum<windowSize>::adjustLog(size_t cnt, double usageFactor, double factor, b
 {
     std::vector<float> fout;
     fout.resize(cnt);
-    std::ranges::fill(fout, 0.0);
+    std::ranges::fill(fout, 0.0f);
     const size_t sumSize = static_cast<size_t>(static_cast<double>(m_sum.size()) * usageFactor);
     double factorLog = (10.0 - 1.0) / static_cast<double>(sumSize);
     std::vector<size_t> binCnt;

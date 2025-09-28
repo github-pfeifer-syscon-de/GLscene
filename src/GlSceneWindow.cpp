@@ -23,6 +23,7 @@
 #include "GlSceneWindow.hpp"
 #include "GlSceneApp.hpp"
 #include "PrefDialog.hpp"
+#include "SpectrumPlot.hpp"
 
 GlSceneWindow::GlSceneWindow(GlSceneApp* application)
 : Gtk::ApplicationWindow()
@@ -51,12 +52,15 @@ GlSceneWindow::~GlSceneWindow()
     }
 }
 
+// allow visiualizing the hamming-window
 class PlotHamm
 : public psc::ui::PlotFunction
 {
 public:
     PlotHamm(double xMin, double xMax)
-    : PlotFunction(xMin, xMax)
+    : psc::ui::PlotFunction()
+    , m_xMin{xMin}
+    , m_xMax{xMax}
     {
     }
     explicit PlotHamm(const PlotHamm& orig) = delete;
@@ -68,11 +72,13 @@ public:
         //return x * x;
         //auto HAMMING_OFFS{0.53836};
         //auto HAMMING_FACTOR{0.46164};
-        auto end = 2.0 * M_PI / xAxis.getMax();
+        auto end = 2.0 * M_PI / m_xMax;
         //return HAMMING_OFFS - (HAMMING_FACTOR * std::cos( (x * end)));
 
         return 1.0 - 0.85 * std::cos(x * end);
     }
+private:
+    double m_xMin,m_xMax;
 };
 
 PlotAudio::PlotAudio(const std::shared_ptr<PlaneGeometry>& geom, double upperFreq)
@@ -97,6 +103,7 @@ PlotAudio::notifyAudio(const std::vector<double>& values)
 #       endif
         m_hzPerSlot = m_upperFreq / static_cast<double>(values.size());
         m_values = values;
+        m_plotDrawing->getXAxis().setMinMax(0, static_cast<double>(values.size() - 1));
         m_plotDrawing->refresh();
     }
 }
@@ -126,7 +133,7 @@ GlSceneWindow::on_action_plot()
     //auto func{std::make_shared<PlotHamm>(0.0, 100.0)};
     auto geom = m_planView->getPlaneGeometry();
     auto func{std::make_shared<PlotAudio>(geom, 22050.0)};
-    psc::ui::Plot::show(this, func);
+    SpectrumPlot::show(this, func);
 }
 
 Gtk::Application*

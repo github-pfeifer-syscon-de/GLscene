@@ -45,6 +45,8 @@ glscene_SOURCES = \
 	Fft.hpp \
 	PrefDialog.cpp \
 	PrefDialog.hpp \
+	SpectrumPlot.cpp \
+	SpectrumPlot.hpp \
 	Capture.cpp \
 	Capture.hpp
 

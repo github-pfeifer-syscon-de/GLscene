@@ -193,6 +193,15 @@ check_fftaud()
     return true;
 }
 
+static size_t
+factorial(size_t n)
+{
+    auto r = (n > 1)
+            ? n * factorial(n - 1)
+            : 1;
+    std::cout << "fac " << n << " r " << r << std::endl;
+    return r;
+}
 
 /*
  *
@@ -240,6 +249,13 @@ int main(int argc, char** argv)
             return 1;
         }
     }
+
+    auto start = std::chrono::steady_clock::now();
+    auto fac = factorial(6);   // 499999500000
+    auto finish = std::chrono::steady_clock::now();
+    double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
+    std::cout << "fact " << fac
+              << " duration " << elapsed_seconds << std::endl;
 
     //Fft2k1k fftPrec;
     //fftPrec.calibrate(100.0);
