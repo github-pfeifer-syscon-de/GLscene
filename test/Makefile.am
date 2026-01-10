@@ -9,7 +9,7 @@ AM_CPPFLAGS = \
 	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
 	$(GENERICGLM_CFLAGS) \
 	$(ALSA_CFLAGS) \
-	-I../src
+	-I$(top_srcdir)/src/
 
 AM_CFLAGS= \
 	-Wpedantic -Wall -Wconversion

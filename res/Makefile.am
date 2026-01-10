@@ -1,12 +1,13 @@
 PKGCONFIG = pkgconf
 GLIB_COMPILE_RESOURCES = $(shell $(PKGCONFIG) --variable=glib_compile_resources gio-2.0)
 
-GLSCENE_RESOURCE_XML=glsceneapp.gresource.xml
+GLSCENE_RESOURCE_XML=$(srcdir)/glsceneapp.gresource.xml
 GLSCENE_RESOURCES=$(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=. --generate-dependencies $(GLSCENE_RESOURCE_XML))
+RESOURCE_C=$(top_srcdir)/src/resources.c
 
-all:../src/resources.c
+all:$(RESOURCE_C)
 
-../src/resources.c: $(GLSCENE_RESOURCE_XML) $(GLSCENE_RESOURCES)
+$(RESOURCE_C): $(GLSCENE_RESOURCE_XML) $(GLSCENE_RESOURCES)
 	$(GLIB_COMPILE_RESOURCES) --target=$@ --sourcedir=$(dir $<) --generate-source $<
 
 # The desktop files
