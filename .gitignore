@@ -59,8 +59,6 @@
 /m4/ltsugar.m4
 /m4/libtool.m4
 /autom4te.cache/
-/src/.deps/
-/src/.libs/
 /nbproject/
 /test/capt_test.trs
 /test/test-suite.log
