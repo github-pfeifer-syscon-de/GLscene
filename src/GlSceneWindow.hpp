@@ -39,7 +39,7 @@ public:
     void notifyAudio(const std::vector<double>& values);
 
     static constexpr auto MARK_HZ{2000.0};
-    Glib::ustring getLabel(size_t idx) override;
+    Glib::ustring getLabel(size_t idx);
 protected:
     double m_upperFreq;
     double m_hzPerSlot;
