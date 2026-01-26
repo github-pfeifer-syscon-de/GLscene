@@ -49,8 +49,8 @@ GlSceneApp::on_action_quit()
 {
     if (m_gltermAppWindow)  {
         m_gltermAppWindow->hide();
-        delete m_gltermAppWindow;
-        m_gltermAppWindow = nullptr;
+        //delete m_gltermAppWindow;
+        //m_gltermAppWindow = nullptr;
     }
 
   // Not really necessary, when Gtk::Widget::hide() is called, unless

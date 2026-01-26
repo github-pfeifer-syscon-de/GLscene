@@ -9,13 +9,31 @@ AM_CPPFLAGS = \
 	$(ALSA_CFLAGS) \
 	$(EPOXY_CFLAGS)
 
-AM_CFLAGS= \
-	-Wpedantic -Wall -Wconversion
-
-AM_CXXFLAGS = \
-	-Wpedantic -Wall -Wconversion
-
 bin_PROGRAMS = glscene
+
+glscene_LDFLAGS =
+
+# this is a no-tech approach,
+#  if you don't like gcc/clang, this should also work without these options
+#  most options originate from https://github.com/cpp-best-practices/cmake_template/blob/main/cmake/Hardening.cmake
+#    -W... the usual warings
+#    GLIBC++ Assertions (vector[], string[], ...) enabled
+#    g++/clang -fstack-protector-strong enabled
+#    g++/clang -fcf-protection enabled
+#    undefined behaviour sanitizer
+if RELEASE
+glscene_CXXFLAGS = -mtune=native -march=native -O3
+else
+glscene_CFLAGS = -Wall
+glscene_CXXFLAGS = -Wall \
+        -Wconversion \
+        -Wpedantic \
+        -D_GLIBCXX_ASSERTIONS \
+        -fstack-protector-strong \
+        -fcf-protection \
+        -fsanitize=undefined
+glscene_LDFLAGS += -fsanitize=undefined
+endif
 
 glscene_SOURCES = \
 	resources.c \
@@ -49,8 +67,6 @@ glscene_SOURCES = \
 	SpectrumPlot.hpp \
 	Capture.cpp \
 	Capture.hpp
-
-glscene_LDFLAGS =
 
 glscene_LDADD = $(GENERICGLM_LIBS) \
 	$(GLIBMM_LIBS) \

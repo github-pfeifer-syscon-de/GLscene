@@ -25,32 +25,6 @@
 #include "PrefDialog.hpp"
 #include "SpectrumPlot.hpp"
 
-GlSceneWindow::GlSceneWindow(GlSceneApp* application)
-: Gtk::ApplicationWindow()
-, m_application{application}
-{
-    set_title("Flow");
-    auto pix = Gdk::Pixbuf::create_from_resource(application->get_resource_base_path() + "/glscene.png");
-    set_icon(pix);
-
-    m_keyConfig = std::make_shared<KeyConfig>("glscene.conf");
-    add_action("preferences", sigc::mem_fun(this, &GlSceneWindow::on_action_preferences));
-    add_action("plot", sigc::mem_fun(this, &GlSceneWindow::on_action_plot));
-    m_planView = new GlPlaneView(this);
-    auto planeView = Gtk::manage(new NaviGlArea(m_planView));
-    add(*planeView);
-    //set_decorated(FALSE);
-    set_default_size(480, 320);
-    show_all_children();
-}
-
-GlSceneWindow::~GlSceneWindow()
-{
-    if (m_planView) {
-        delete m_planView;
-        m_planView = nullptr;
-    }
-}
 
 // allow visiualizing the hamming-window
 class PlotHamm
@@ -120,6 +94,32 @@ PlotAudio::getLabel(size_t idx)
 }
 
 
+GlSceneWindow::GlSceneWindow(GlSceneApp* application)
+: Gtk::ApplicationWindow()
+, m_application{application}
+{
+    set_title("Flow");
+    auto pix = Gdk::Pixbuf::create_from_resource(application->get_resource_base_path() + "/glscene.png");
+    set_icon(pix);
+
+    m_keyConfig = std::make_shared<KeyConfig>("glscene.conf");
+    add_action("preferences", sigc::mem_fun(this, &GlSceneWindow::on_action_preferences));
+    add_action("plot", sigc::mem_fun(this, &GlSceneWindow::on_action_plot));
+    m_planView = new GlPlaneView(this);
+    auto planeView = Gtk::manage(new NaviGlArea(m_planView));
+    add(*planeView);
+    //set_decorated(FALSE);
+    set_default_size(480, 320);
+    show_all_children();
+}
+
+GlSceneWindow::~GlSceneWindow()
+{
+    if (m_planView) {
+        delete m_planView;
+        m_planView = nullptr;
+    }
+}
 
 void
 GlSceneWindow::on_action_preferences()
