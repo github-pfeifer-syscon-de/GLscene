@@ -26,7 +26,7 @@
 #include <psc_format.hpp>
 
 #include "Pulse.hpp"
-#include "config.h"
+#include "glscene_config.h"
 
 namespace psc::snd
 {
@@ -699,6 +699,7 @@ AudioGenerator::requestData(size_t samples, int16_t* buffer)
                 buffer[i] = static_cast<int16_t>(v);
             }
         }
+	break;
         case AudioShape::Square: {
             size_t tFactor{static_cast<size_t>(44100.0f / m_freq)};
             size_t tFactor2{tFactor / 2};
@@ -708,6 +709,7 @@ AudioGenerator::requestData(size_t samples, int16_t* buffer)
                 buffer[i] = static_cast<int16_t>(v);
             }
         }
+	break;
     }
     m_idx += samples;
 }

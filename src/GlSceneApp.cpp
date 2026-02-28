@@ -27,11 +27,6 @@
 GlSceneApp::GlSceneApp(int argc, char **argv)
 : Gtk::Application(argc, argv, "de.pfeifer_syscon.glscene")
 {
-
-}
-
-GlSceneApp::GlSceneApp(const GlSceneApp& orig)
-{
 }
 
 void

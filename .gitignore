@@ -83,3 +83,5 @@
 /src/.save/
 /test/.save/
 /build/
+/.idea/
+/build.sh

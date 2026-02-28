@@ -20,7 +20,7 @@
 #include "PlaneGeometry.hpp"
 #include "PlaneContext.hpp"
 #include "GlSceneWindow.hpp"
-#include "config.h"
+#include "glscene_config.h"
 
 PlaneGeometry::PlaneGeometry(PlaneContext *_ctx, const std::shared_ptr<KeyConfig>& keyConfig)
 : ctx{_ctx}

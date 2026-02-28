@@ -21,7 +21,7 @@
 class GlSceneApp : public Gtk::Application {
 public:
     GlSceneApp(int arc, char **argv);
-    GlSceneApp(const GlSceneApp& orig);
+    GlSceneApp(const GlSceneApp& orig) = default;
     virtual ~GlSceneApp() = default;
 
     void on_activate();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 RPf 
+ * Copyright (C) 2025 RPf
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -111,8 +111,6 @@ check_alsa(const std::string& name, ChunkedArray<int16_t>& data)
     return true;
 }
 
-#define REAL 0
-#define IMAG 1
 void calc_freq(const float* data, float* freq);
 
 static bool
