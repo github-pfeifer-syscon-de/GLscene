@@ -15,5 +15,6 @@ sources = files(
     ,'PrefDialog.cpp'
     ,'SpectrumPlot.cpp'
     ,'Capture.cpp'
+    ,'ObjLoader.cpp'
     )
 

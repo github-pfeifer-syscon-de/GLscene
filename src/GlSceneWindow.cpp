@@ -163,18 +163,22 @@ GlSceneWindow::getKeyConfig()
 void
 GlSceneWindow::saveConfig()
 {
-    auto planGeom = m_planView->getPlaneGeometry();
-    planGeom->saveConfig();
-    m_keyConfig->setString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MOVEMENT_KEY, m_planView->getMovement());
-
+    m_planView->saveConfig(m_keyConfig);
     m_keyConfig->saveConfig();
 }
 
 void
 GlSceneWindow::restoreConfig()
 {
-    // keep this as first as the remaing depends on this
-    m_planView->setMovement(m_keyConfig->getString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MOVEMENT_KEY, "F"));
-    auto planGeom = m_planView->getPlaneGeometry();
-    planGeom->restoreConfig();
+    m_planView->restoreConfig(m_keyConfig);
+}
+
+void
+GlSceneWindow::show_error(const std::string& msg, Gtk::MessageType type)
+{
+    // this shoud automatically give some context
+    g_warning("show_error %s", msg.c_str());
+    Gtk::MessageDialog messagedialog(*this, msg, FALSE, type);
+    messagedialog.run();
+    messagedialog.hide();
 }

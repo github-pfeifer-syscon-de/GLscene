@@ -18,7 +18,7 @@
 #pragma once
 
 #include <gtkmm.h>
-#include <epoxy/gl.h>
+#include <GenericGlmCompat.hpp>
 #include <list>
 #include <Geom2.hpp>
 #include <KeyConfig.hpp>

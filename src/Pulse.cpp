@@ -122,7 +122,7 @@ get_sample_info_callback(pa_context *ctx, const pa_sample_info *inf, int is_last
               << " is_last " << is_last << std::endl;
 #   endif
     if (is_last < 0) {
-        std::cout << psc::fmt::format("Failed to get sample information: {}", pa_strerror(pa_context_errno(ctx)))
+        std::cout << std::format("Failed to get sample information: {}", pa_strerror(pa_context_errno(ctx)))
                   << std::endl;
         return;
     }
@@ -140,23 +140,23 @@ get_sample_info_callback(pa_context *ctx, const pa_sample_info *inf, int is_last
         strlcpy(chrSpec, "n/a", sizeof(chrSpec));
     }
     float balance = pa_cvolume_get_balance(&inf->volume, &inf->channel_map);
-    std::cout << psc::fmt::format("Sample #{}", inf->index) << std::endl;
-    std::cout << psc::fmt::format("\tName: {}", inf->name) << std::endl;
-    std::cout << psc::fmt::format("\tSample Specification: {}", chrSpec) << std::endl;
-    std::cout << psc::fmt::format("\tChannel Map: {}", chrChanMap) << std::endl;
+    std::cout << std::format("Sample #{}", inf->index) << std::endl;
+    std::cout << std::format("\tName: {}", inf->name) << std::endl;
+    std::cout << std::format("\tSample Specification: {}", chrSpec) << std::endl;
+    std::cout << std::format("\tChannel Map: {}", chrChanMap) << std::endl;
     char chrChanVol[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
     pa_cvolume_snprint_verbose(chrChanVol, sizeof(chrChanVol), &inf->volume, &inf->channel_map, true);
-    std::cout << psc::fmt::format("\tVolume: {}", chrChanVol) << std::endl;
-    std::cout << psc::fmt::format("\t        balance {:0.2f}", balance) << std::endl;
+    std::cout << std::format("\tVolume: {}", chrChanVol) << std::endl;
+    std::cout << std::format("\t        balance {:0.2f}", balance) << std::endl;
     double duration = (double) inf->duration/1000000.0;
-    std::cout << psc::fmt::format("\tDuration: {:0.1f}s", duration) << std::endl;
+    std::cout << std::format("\tDuration: {:0.1f}s", duration) << std::endl;
     char chrSize[PA_BYTES_SNPRINT_MAX];
     pa_bytes_snprint(chrSize, sizeof(chrSize), inf->bytes);
-    std::cout << psc::fmt::format("\tSize: {}", chrSize) << std::endl;
-    std::cout << psc::fmt::format("\tLazy: {}", (inf->lazy ? "yes" : "no")) << std::endl;
-    std::cout << psc::fmt::format("\tFilename: {}", (inf->filename ? inf->filename : "n/a")) << std::endl;
+    std::cout << std::format("\tSize: {}", chrSize) << std::endl;
+    std::cout << std::format("\tLazy: {}", (inf->lazy ? "yes" : "no")) << std::endl;
+    std::cout << std::format("\tFilename: {}", (inf->filename ? inf->filename : "n/a")) << std::endl;
     char* pl = pa_proplist_to_string_sep(inf->proplist, "\n\t\t");
-    std::cout << psc::fmt::format("\tProperties:\n\t\t{}", pl) << std::endl;
+    std::cout << std::format("\tProperties:\n\t\t{}", pl) << std::endl;
     pa_xfree(pl);
 }
 
@@ -210,14 +210,14 @@ get_device_port_type(unsigned int type) {
     case PA_DEVICE_PORT_TYPE_ANALOG:
         return "Analog";
     }
-    return psc::fmt::format( "Unknown port type %u", type);
+    return std::format( "Unknown port type %u", type);
 }
 
 static void
 get_sink_info_callback(pa_context *ctx, const pa_sink_info *inf, int is_last, void *userdata)
 {
     if (is_last < 0) {
-        std::cout << psc::fmt::format("Failed to get sink information: {}", pa_strerror(pa_context_errno(ctx)))
+        std::cout << std::format("Failed to get sink information: {}", pa_strerror(pa_context_errno(ctx)))
                   << std::endl;
         return;
     }
@@ -257,21 +257,21 @@ get_sink_info_callback(pa_context *ctx, const pa_sink_info *inf, int is_last, vo
     pa_cvolume_snprint_verbose(chrCVolume, sizeof(chrCVolume), &inf->volume, &inf->channel_map, inf->flags & PA_SINK_DECIBEL_VOLUME);
     char chrVolume[PA_VOLUME_SNPRINT_VERBOSE_MAX];
     pa_volume_snprint_verbose(chrVolume, sizeof(chrVolume), inf->base_volume, inf->flags & PA_SINK_DECIBEL_VOLUME);
-    std::cout << psc::fmt::format("Sink #{}", inf->index) <<std::endl;
-    std::cout << psc::fmt::format("\tState: {}", state) << std::endl;
-    std::cout << psc::fmt::format("\tName: {}", inf->name) <<std::endl;
-    std::cout << psc::fmt::format("\tDescription: {}", pa_strnull(inf->description)) <<std::endl;
-    std::cout << psc::fmt::format("\tDriver: {}", pa_strnull(inf->driver)) <<std::endl;
-    std::cout << psc::fmt::format("\tSample Specification: {}", sample_spec) <<std::endl;
-    std::cout << psc::fmt::format("\tChannel Map: {}", channel_map) <<std::endl;
-    std::cout << psc::fmt::format("\tOwner Module: {}", inf->owner_module) <<std::endl;
-    std::cout << psc::fmt::format("\tMute: {}", (inf->mute ? "yes" : "no")) <<std::endl;
-    std::cout << psc::fmt::format("\tVolume: {}", chrCVolume) <<std::endl;
-    std::cout << psc::fmt::format("\t        balance {:0.2f}", volume_balance) <<std::endl;
-    std::cout << psc::fmt::format("\tBase Volume: {}", chrVolume) <<std::endl;
-    std::cout << psc::fmt::format("\tMonitor Source: {}", pa_strnull(inf->monitor_source_name)) << std::endl;
-    std::cout << psc::fmt::format("\tLatency: {:0.0f} usec, configured {:0.0f} usec", (double) inf->latency, (double) inf->configured_latency) <<std::endl;
-    std::cout << psc::fmt::format("\tFlags: {}{}{}{}{}{}{}"
+    std::cout << std::format("Sink #{}", inf->index) <<std::endl;
+    std::cout << std::format("\tState: {}", state) << std::endl;
+    std::cout << std::format("\tName: {}", inf->name) <<std::endl;
+    std::cout << std::format("\tDescription: {}", pa_strnull(inf->description)) <<std::endl;
+    std::cout << std::format("\tDriver: {}", pa_strnull(inf->driver)) <<std::endl;
+    std::cout << std::format("\tSample Specification: {}", sample_spec) <<std::endl;
+    std::cout << std::format("\tChannel Map: {}", channel_map) <<std::endl;
+    std::cout << std::format("\tOwner Module: {}", inf->owner_module) <<std::endl;
+    std::cout << std::format("\tMute: {}", (inf->mute ? "yes" : "no")) <<std::endl;
+    std::cout << std::format("\tVolume: {}", chrCVolume) <<std::endl;
+    std::cout << std::format("\t        balance {:0.2f}", volume_balance) <<std::endl;
+    std::cout << std::format("\tBase Volume: {}", chrVolume) <<std::endl;
+    std::cout << std::format("\tMonitor Source: {}", pa_strnull(inf->monitor_source_name)) << std::endl;
+    std::cout << std::format("\tLatency: {:0.0f} usec, configured {:0.0f} usec", (double) inf->latency, (double) inf->configured_latency) <<std::endl;
+    std::cout << std::format("\tFlags: {}{}{}{}{}{}{}"
                                     , inf->flags & PA_SINK_HARDWARE ? "HARDWARE " : ""
                                     , inf->flags & PA_SINK_NETWORK ? "NETWORK " : ""
                                     , inf->flags & PA_SINK_HW_MUTE_CTRL ? "HW_MUTE_CTRL " : ""
@@ -280,7 +280,7 @@ get_sink_info_callback(pa_context *ctx, const pa_sink_info *inf, int is_last, vo
                                     , inf->flags & PA_SINK_LATENCY ? "LATENCY " : ""
                                     , inf->flags & PA_SINK_SET_FORMATS ? "SET_FORMATS " : "") <<std::endl;
     char *pl = pa_proplist_to_string_sep(inf->proplist, "\n\t\t");
-    std::cout << psc::fmt::format("\tProperties:\n\t\t{}", pl) <<std::endl;
+    std::cout << std::format("\tProperties:\n\t\t{}", pl) <<std::endl;
     pa_xfree(pl);
 
     if (inf->ports) {
@@ -300,7 +300,7 @@ get_sink_info_callback(pa_context *ctx, const pa_sink_info *inf, int is_last, vo
                 avail = "not available";
                 break;
             }
-            std::cout << psc::fmt::format("\t\t{}: {} (type: {}, priority: {}{}{}, {})",
+            std::cout << std::format("\t\t{}: {} (type: {}, priority: {}{}{}, {})",
                     (*p)->name, (*p)->description, get_device_port_type((*p)->type),
                     (*p)->priority, (*p)->availability_group ? ", availability group: " : "",
                     (*p)->availability_group ? (*p)->availability_group : "", avail)
@@ -309,7 +309,7 @@ get_sink_info_callback(pa_context *ctx, const pa_sink_info *inf, int is_last, vo
     }
 
     if (inf->active_port) {
-        std::cout<< psc::fmt::format("\tActive Port: {}", inf->active_port->name) << std::endl;
+        std::cout<< std::format("\tActive Port: {}", inf->active_port->name) << std::endl;
     }
     if (inf->formats) {
         uint8_t j;
@@ -318,7 +318,7 @@ get_sink_info_callback(pa_context *ctx, const pa_sink_info *inf, int is_last, vo
         char chrFormat[PA_FORMAT_INFO_SNPRINT_MAX];
         for (j = 0; j < inf->n_formats; j++) {
             pa_format_info_snprint(chrFormat, sizeof(chrFormat), inf->formats[j]);
-            std::cout << psc::fmt::format("\t\t{}", chrFormat)
+            std::cout << std::format("\t\t{}", chrFormat)
                      << std::endl;
         }
     }
@@ -495,7 +495,7 @@ PulseStream::streamNotify(const pa_stream_state state )
             m_ready = false;
             {
                 auto ctx = m_pulseContext->getContext();
-                std::cout << psc::fmt::format("Stream failed: {}", pa_strerror(pa_context_errno(ctx)))
+                std::cout << std::format("Stream failed: {}", pa_strerror(pa_context_errno(ctx)))
                           << std::endl;
             }
             break;
@@ -537,25 +537,25 @@ PulseStream::onStreamReady()
 #   endif
     auto ctx = m_pulseContext->getContext();
     if (!(a = pa_stream_get_buffer_attr(m_stream))) {
-        std::cout << psc::fmt::format("pa_stream_get_buffer_attr() failed: {}", pa_strerror(pa_context_errno(ctx))) << std::endl;
+        std::cout << std::format("pa_stream_get_buffer_attr() failed: {}", pa_strerror(pa_context_errno(ctx))) << std::endl;
     }
     else {
 #       ifdef DEBUG
-        std::cout << psc::fmt::format("Buffer metrics: maxlength={}, tlength={}, prebuf={}, minreq={}"
+        std::cout << std::format("Buffer metrics: maxlength={}, tlength={}, prebuf={}, minreq={}"
                                       , a->maxlength, a->tlength, a->prebuf, a->minreq) << std::endl;
 #       endif
     }
     char sst[PA_SAMPLE_SPEC_SNPRINT_MAX];
     pa_sample_spec_snprint(sst, sizeof(sst), pa_stream_get_sample_spec(m_stream));
 #   ifdef DEBUG
-    std::cout << psc::fmt::format("Using sample spec '{}'", sst) << std::endl;
+    std::cout << std::format("Using sample spec '{}'", sst) << std::endl;
 #   endif
     char cmt[PA_CHANNEL_MAP_SNPRINT_MAX];
     pa_channel_map_snprint(cmt, sizeof(cmt), pa_stream_get_channel_map(m_stream));
 #   ifdef DEBUG
-    std::cout << psc::fmt::format("Channel map '{}'", cmt) << std::endl;
+    std::cout << std::format("Channel map '{}'", cmt) << std::endl;
 
-    std::cout << psc::fmt::format("Connected to device {} ({}, {}suspended).",
+    std::cout << std::format("Connected to device {} ({}, {}suspended).",
             pa_stream_get_device_name(m_stream),
             pa_stream_get_device_index(m_stream),
             pa_stream_is_suspended(m_stream) ? "" : "not ") << std::endl;
@@ -736,7 +736,7 @@ stream_event_callback(pa_stream *s, const char *name, pa_proplist *pl, void *use
 {
 #   ifdef DEBUG
     char *t = pa_proplist_to_string_sep(pl, ", ");
-    std::cout << psc::fmt::format("Got event '{}', properties '{}'", name, t)
+    std::cout << std::format("Got event '{}', properties '{}'", name, t)
               << std::endl;
     pa_xfree(t);
 #   endif
@@ -770,7 +770,7 @@ PulseOut::serverInfo(const pa_server_info *info)
 
     auto ctx = m_pulseContext->getContext();
     if (!(m_stream = pa_stream_new(ctx, "PulseOut", &spec, m_channel_map_set ? &m_channel_map : nullptr))) {
-        std::cout << psc::fmt::format("pa_stream_new() failed: {}", pa_strerror(pa_context_errno(ctx)))
+        std::cout << std::format("pa_stream_new() failed: {}", pa_strerror(pa_context_errno(ctx)))
                   << std::endl;
         return;
     }
@@ -803,7 +803,7 @@ PulseOut::serverInfo(const pa_server_info *info)
     int r;
     if ((r = pa_stream_connect_playback(m_stream, device, m_latency > 0 ? &buffer_attr : nullptr, flags, pa_cvolume_set(&cv, spec.channels, volume), NULL)) < 0) {
         auto ctx = m_pulseContext->getContext();
-        std::cout << psc::fmt::format("pa_stream_connect_playback() failed: {}", pa_strerror(pa_context_errno(ctx)))
+        std::cout << std::format("pa_stream_connect_playback() failed: {}", pa_strerror(pa_context_errno(ctx)))
                   << std::endl;
         return;
     }
@@ -829,7 +829,7 @@ PulseOut::requestData(size_t length)
     size_t toWriteBytes{m_writeLong ? static_cast<size_t>(-1) : length};    // strange: we are requested to pass -1 to choose automatic sizing, this is definitely c-style
     if (pa_stream_begin_write(m_stream, reinterpret_cast<void**>(&data), &toWriteBytes) || data == nullptr) {
         auto ctx = m_pulseContext->getContext();
-        std::cout << psc::fmt::format("pa_stream_begin_write() failed: {}", pa_strerror(pa_context_errno(ctx)))
+        std::cout << std::format("pa_stream_begin_write() failed: {}", pa_strerror(pa_context_errno(ctx)))
                   << std::endl;
         return;
     }
@@ -838,7 +838,7 @@ PulseOut::requestData(size_t length)
     m_source->requestData(samples, data16);
     if (pa_stream_write(m_stream, data, toWriteBytes, nullptr, 0, PA_SEEK_RELATIVE) < 0) {
         auto ctx = m_pulseContext->getContext();
-        std::cout << psc::fmt::format("pa_stream_write() failed: {}", pa_strerror(pa_context_errno(ctx)))
+        std::cout << std::format("pa_stream_write() failed: {}", pa_strerror(pa_context_errno(ctx)))
                   << std::endl;
     }
 }
@@ -854,7 +854,7 @@ PulseOut::drain()
     pa_operation *operation;
     if (!(operation = pa_stream_drain(m_stream, stream_drain_complete, this))) {
         auto ctx = m_pulseContext->getContext();
-        std::cout << psc::fmt::format("pa_stream_drain(): {}", pa_strerror(pa_context_errno(ctx)))
+        std::cout << std::format("pa_stream_drain(): {}", pa_strerror(pa_context_errno(ctx)))
                   << std::endl;
         disconnect();
         return;

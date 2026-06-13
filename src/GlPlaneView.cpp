@@ -219,12 +219,28 @@ GlPlaneView::draw(Gtk::GLArea *glArea, Matrix &proj, Matrix &view)
     std::list<psc::mem::active_ptr<psc::gl::Geom2>> back;
     back.push_back(m_planePane->getBackRow());
     m_planeContext->display(projView, back);
-    m_planeContext->unuse();
     if (USE_TRANSPARENCY) { // and back to "normal"
         glBlendFunc(GL_ONE, GL_ZERO);
         glDisable(GL_BLEND);
         //glEnable(GL_DEPTH_TEST);
     }
+    if (m_objLoader) {
+        doActivateModel();  // keep this in display loop so gl-ctx is active
+    }
+    auto t = (float)((double)time * m_modelAnimationSpeed / 1.0e6);
+    for (auto geo : m_objGeo) {
+        if (auto lgeo = geo.lease()) {
+            auto sint = std::sinf(t);
+            auto rot = lgeo->getRotation();
+            Rotational next(rot.getPhi(), rot.getTheta(), sint * 45.0f /* rot.getPsi()*/);
+            lgeo->setRotation(next);
+            auto pos = lgeo->getPosition();
+            pos.x = sint * 5.0f;
+            lgeo->setPosition(pos);
+        }
+    }
+    m_planeContext->display(projView, m_objGeo);
+    m_planeContext->unuse();
 
 
     if (PlaneContext::showSmokeShader) {
@@ -283,4 +299,86 @@ GlPlaneView::setMovement(const std::string& movement)
         }
     }
     m_movement = movement;
+}
+
+Glib::RefPtr<Gio::File>
+GlPlaneView::getModelFile()
+{
+    return m_modelFile;
+}
+
+void
+GlPlaneView::setModelFile(const Glib::RefPtr<Gio::File>& modelFile)
+{
+    m_modelFile = modelFile;
+    if (m_modelFile) {
+        try {
+            auto objLoader = std::make_shared<psc::gl::ObjLoader>();
+            objLoader->load(m_modelFile);
+            m_objLoader = std::move(objLoader);
+        }
+        catch (const psc::gl::ObjException& exc) {
+            m_glSceneWindow->show_error(exc.what());
+        }
+    }
+}
+
+double
+GlPlaneView::getModelAnimSpeed()
+{
+    return m_modelAnimationSpeed;
+}
+
+void
+GlPlaneView::setModelAnimSpeed(double modelAnimationSpeed)
+{
+    m_modelAnimationSpeed = modelAnimationSpeed;
+}
+
+
+void
+GlPlaneView::doActivateModel()
+{
+    m_objGeo.clear();
+    if (m_objLoader) {
+        std::list<psc::gl::aptrGeom2> objGeo;
+        for (size_t i = 0; i < m_objLoader->getItems(); ++i) {
+            auto item = m_objLoader->getItem(i);
+            auto geo = item->getGeometry(m_planeContext);
+            if (auto lgeo = geo.lease()) {
+                lgeo->setScale(1.0f);
+                Position pos{0.0f, 3.0f, -5.0f};
+                lgeo->setPosition(pos);
+            }
+            objGeo.push_back(geo);
+        }
+        m_objLoader.reset();
+        m_objGeo = objGeo;
+    }
+}
+
+void
+GlPlaneView::saveConfig(const std::shared_ptr<KeyConfig>& keyConfig)
+{
+    auto planGeom = getPlaneGeometry();
+    planGeom->saveConfig();
+    keyConfig->setString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MOVEMENT_KEY, getMovement());
+    keyConfig->setString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MODEL_FILE_KEY, getModelFile()
+                            ?  getModelFile()->get_parse_name()
+                               : "");
+    keyConfig->setDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MODEL_ANIM_SPEED, m_modelAnimationSpeed);
+}
+
+void
+GlPlaneView::restoreConfig(const std::shared_ptr<KeyConfig>& keyConfig)
+{
+    // keep this as first as the remaing depends on this
+    setMovement(keyConfig->getString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MOVEMENT_KEY, "F"));
+    auto planGeom = getPlaneGeometry();
+    planGeom->restoreConfig();
+    auto filePath = keyConfig->getString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MODEL_FILE_KEY,  "");
+    setModelFile(filePath.empty()
+                    ? Glib::RefPtr<Gio::File>()
+                    : Gio::File::create_for_parse_name(filePath));
+    m_modelAnimationSpeed = keyConfig->getDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MODEL_ANIM_SPEED, 1.0);
 }

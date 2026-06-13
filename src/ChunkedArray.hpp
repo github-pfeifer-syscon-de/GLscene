@@ -21,6 +21,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <cstdint>
 
 
 // a implementation of a array with chunked storage

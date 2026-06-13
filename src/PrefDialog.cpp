@@ -69,7 +69,24 @@ PrefDialog::PrefDialog(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     m_movement->signal_changed().connect([this] {
         m_sceneWindow->getPlaneView()->setMovement(m_movement->get_active_id());
     });
-
+    // Model section
+    builder->get_widget("fileModel", m_fileChooser);
+    auto file = m_sceneWindow->getPlaneView()->getModelFile();
+    if (file) {
+        m_fileChooser->set_file(file);
+    }
+    auto fileFilter = Gtk::FileFilter::create();
+    fileFilter->add_pattern("*.obj");
+    fileFilter->set_name("Obj");
+    m_fileChooser->set_filter(fileFilter);
+    m_fileChooser->signal_file_set().connect([this] {
+        m_sceneWindow->getPlaneView()->setModelFile(m_fileChooser->get_file());
+    });
+    builder->get_widget("modelAnimSpeed", m_modelAnimSpeed);
+    m_modelAnimSpeed->set_value(m_sceneWindow->getPlaneView()->getModelAnimSpeed());
+    m_modelAnimSpeed->signal_value_changed().connect( [this] {
+        m_sceneWindow->getPlaneView()->setModelAnimSpeed(m_modelAnimSpeed->get_value());
+    });
 }
 
 void

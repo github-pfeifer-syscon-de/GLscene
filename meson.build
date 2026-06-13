@@ -42,11 +42,17 @@ fftw_deps       = dependency('fftw3')
 genericimg_deps = dependency('genericimg', version :'>= 0.4.0')
 genericglm_deps = dependency('genericglm', version :'>= 0.3.1')
 openssl_deps    = dependency('openssl')
+if target_machine.system() == 'windows'
+    glu_deps = cc.find_library('glu32', required: true)
+else
+    glu_deps = dependency('glu')
+endif
 deps = [
       genericimg_deps
     , genericglm_deps
     , pulse_deps
     , fftw_deps
+    , glu_deps
     , thread_deps
     ]
 include_dirs = include_directories(fs.parent(conf_file))

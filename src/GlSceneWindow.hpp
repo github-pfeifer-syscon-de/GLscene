@@ -60,6 +60,7 @@ public:
     std::shared_ptr<KeyConfig> getKeyConfig();
     void saveConfig();
     void restoreConfig();
+    void show_error(const std::string& msg, Gtk::MessageType type = Gtk::MessageType::MESSAGE_ERROR);
 
     static constexpr auto MAIN_SECTION{"main"};
     static constexpr auto SCALE_KEY{"scaleY"};
@@ -67,6 +68,8 @@ public:
     static constexpr auto FREQ_USE_KEY{"frequUsage"};
     static constexpr auto FREQ_SCALE_MODE_KEY{"frequScaleMode"};
     static constexpr auto MOVEMENT_KEY{"movement"};
+    static constexpr auto MODEL_FILE_KEY{"modelFile"};
+    static constexpr auto MODEL_ANIM_SPEED{"modelAnimSpeed"};
 private:
     GlSceneApp* m_application;
     GlPlaneView* m_planView{nullptr};

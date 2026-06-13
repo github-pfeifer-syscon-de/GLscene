@@ -27,6 +27,7 @@
 #include "PlaneContext.hpp"
 #include "PlaneGeometry.hpp"
 #include "SmokeContext.hpp"
+#include "ObjLoader.hpp"
 
 class GlSceneWindow;
 
@@ -46,8 +47,16 @@ public:
     std::shared_ptr<PlaneGeometry> getPlaneGeometry();
     std::string getMovement();
     void setMovement(const std::string& movement);
+    Glib::RefPtr<Gio::File> getModelFile();
+    void setModelFile(const Glib::RefPtr<Gio::File>& modelFile);
+    double getModelAnimSpeed();
+    void setModelAnimSpeed(double modelAnimationSpeed);
+    void saveConfig(const std::shared_ptr<KeyConfig>& keyConfig);
+    void restoreConfig(const std::shared_ptr<KeyConfig>& keyConfig);
 protected:
     static constexpr auto USE_TRANSPARENCY{true};
+    void doActivateModel();
+
 private:
     NaviGlArea *m_naviGlArea;
     PlaneContext* m_planeContext{};
@@ -57,10 +66,13 @@ private:
     psc::mem::active_ptr<psc::gl::Text2> m_text1;
     psc::mem::active_ptr<psc::gl::Text2> m_text2;
     psc::mem::active_ptr<psc::gl::Text2> m_text3;
-
+    std::shared_ptr<psc::gl::ObjLoader> m_objLoader;
+    std::list<psc::gl::aptrGeom2> m_objGeo;
     SmokeContext* m_smokeContext{};
     psc::mem::active_ptr<psc::gl::Geom2> m_smokePlane;
     Gtk::Application* m_application;
     GlSceneWindow* m_glSceneWindow;
     std::string m_movement;
+    Glib::RefPtr<Gio::File> m_modelFile;
+    double m_modelAnimationSpeed;
 };

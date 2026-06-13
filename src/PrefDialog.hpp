@@ -49,5 +49,7 @@ private:
     Gtk::Scale* m_freqUsage;
     Gtk::ComboBoxText* m_freqMode;
     Gtk::ComboBoxText* m_movement;
+    Gtk::FileChooserButton* m_fileChooser;
+    Gtk::Scale* m_modelAnimSpeed;
 };
 

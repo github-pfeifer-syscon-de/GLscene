@@ -12,6 +12,14 @@ fft_test = executable('fft_test'
     , dependencies: deps)
 test('fft_test ', fft_test)
 
+# load_test left for manual test
+
+load_test = executable('load_test'
+                      , ['../src/ObjLoader.cpp'
+                         , 'load_test.cpp']
+                      , include_directories: incSrcTest
+                      , dependencies: deps)
+
 # patest left for manual test
 
 pa_test = executable('pa_test'
