@@ -367,7 +367,7 @@ ObjItem::tesselateGlu()
             objTessy.endPolygon();
         }
     }
-    std::cout << "ObjItem"
+    std::cout << "ObjItem " << m_name
               << " indexed " << m_indexed
               << " added " << m_added << std::endl;
 }

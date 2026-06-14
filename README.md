@@ -1,4 +1,4 @@
-= GLscene =
+# GLscene
 
 To make this a bit more useful integrated a sound output capture,
 with fft-conversion 
@@ -11,7 +11,7 @@ with fft-conversion
 
 ![glscene](glscene.png "glscene")
 
-== Shader display ==
+## Shader display 
 
 This may also be used for some shader experiment
 (decide yourself if this is effect is worth the effort
@@ -30,12 +30,12 @@ The outline is :
 7.   ... at  UV res(1.0f, 1.0f) change the value to a nice scale
 8.   ... at  float t = (float)((double)time/3.0E6);
 
-== Model display ==
+## Model display
 
 The preference allow to load & animate some obj model.
 Blender allows to create & edit such models and export them as obj.
 
-=== Blender ===
+### Blender
 
 - keep your model at a reasonable size for your available hardware. 
 
