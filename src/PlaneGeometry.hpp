@@ -50,7 +50,7 @@ public:
     static constexpr auto PLANE_TILES{40u};   // was 40
     static constexpr auto Z_MIN{-10.0f};
     static constexpr auto Z_MAX{10.0f};
-    static constexpr auto X_OFFS{PlaneContext::showSmokeShader ? 12.0f : 0.0f};
+    static constexpr auto X_OFFS{/*PlaneContext::showSmokeShader ? 12.0f :*/ 0.0f};
     static constexpr auto STEP{(Z_MAX-Z_MIN) / static_cast<float>(PLANE_TILES-1)};
     static constexpr auto TIMESCALE{500l};
     double getScale();

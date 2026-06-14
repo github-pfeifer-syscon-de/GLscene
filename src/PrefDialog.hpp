@@ -51,5 +51,6 @@ private:
     Gtk::ComboBoxText* m_movement;
     Gtk::FileChooserButton* m_fileChooser;
     Gtk::Scale* m_modelAnimSpeed;
+    Gtk::CheckButton* m_showShader;
 };
 

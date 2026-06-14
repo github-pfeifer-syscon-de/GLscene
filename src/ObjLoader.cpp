@@ -394,9 +394,6 @@ ObjItem::tesselateGlu()
         //geoIdxPrev = geoIdx;
 
     }
-    if (auto lgeo = m_geom.lease()) {
-        lgeo->create_vao();
-    }
 }
 
 void
@@ -456,7 +453,17 @@ ObjItem::tesselate()
             }
 
         }
-        lgeo->create_vao();
+    }
+}
+
+void
+ObjItem::triangulate(GeometryContext *ctx)
+{
+    if (!m_geom) {
+        std::lock_guard<std::mutex> lock(m_MutexObj); // this allows only one instance at a time
+        m_geom = psc::mem::make_active<psc::gl::Geom2>(GL_TRIANGLES, ctx);
+        //tesselate(); // -> simple version to verify use when obj was exported tiangulated
+        tesselateGlu();
     }
 }
 
@@ -464,10 +471,12 @@ psc::gl::aptrGeom2
 ObjItem::getGeometry(GeometryContext *ctx)
 {
     if (!m_geom) {
-        std::lock_guard<std::mutex> lock(m_MutexObj); // this allows only one instance at a time
-        m_geom = psc::mem::make_active<psc::gl::Geom2>(GL_TRIANGLES, ctx);
-        //tesselate(); // -> simple version
-        tesselateGlu();
+        triangulate(ctx);
+    }
+    if (auto lgeo = m_geom.lease()) {
+        if (lgeo->getNumVertex() == 0) {
+            lgeo->create_vao();
+        }
     }
     return m_geom;
 }
@@ -520,7 +529,8 @@ ObjTessy::~ObjTessy()
 
 // see https://wikis.khronos.org/opengl/Calculating_a_Surface_Normal
 //   Newell's method
-// guess: calculate a surface normal improves this as the actual data is more oriented to display???
+// guess: calculate a surface normal improves this as the quality of actual data may vary
+//   and this not just messes up lighting (blender, requires sometimes a calculation step)
 Vector
 ObjTessy::calculateNormal(const std::vector<ObjIdx>& polygon, const std::vector<Position>& pos)
 {
@@ -582,6 +592,10 @@ ObjTessy::endContour()
 void
 ObjTessy::vertex(const Position &pos, size_t ctx)
 {
+    if (m_values.size() + 3u > m_values.capacity()) {
+        auto msg = std::format("The polygon was initalized for {} but now more are added, this breaks the tesselator references.", m_values.capacity() / 3u);
+        throw ObjException(msg);
+    }
     auto dpos = &*m_values.end();
     m_values.push_back(pos.x);  // make values persistent
     m_values.push_back(pos.y);
@@ -618,7 +632,7 @@ ObjLoader::addObject(const std::string& oname)
     else {
         name = std::format("obj.{}", m_items.size());
     }
-    size_t base_pos{1};     // use 1 as the indexes start with 1
+    size_t base_pos{1};     // use 1 as the positive indexes start with 1
     size_t base_norm{1};
     size_t base_uv{1};
     if (m_items.size() > 0) {

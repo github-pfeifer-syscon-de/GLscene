@@ -87,6 +87,11 @@ PrefDialog::PrefDialog(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     m_modelAnimSpeed->signal_value_changed().connect( [this] {
         m_sceneWindow->getPlaneView()->setModelAnimSpeed(m_modelAnimSpeed->get_value());
     });
+    builder->get_widget("showShader", m_showShader);
+    m_showShader->set_active(m_sceneWindow->getPlaneView()->isShowShader());
+    m_showShader->signal_toggled().connect( [this] {
+        m_sceneWindow->getPlaneView()->setShowShader(m_showShader->get_active());
+    });
 }
 
 void

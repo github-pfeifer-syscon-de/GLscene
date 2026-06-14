@@ -52,7 +52,7 @@ GlPlaneView::getIntialPosition()
 Rotational
 GlPlaneView::getInitalAngleDegree()
 {
-    return Rotational(-40.0f, 0.0f, 0.0f);
+    return Rotational(-33.0f, 0.0f, 0.0f);
 }
 
 guint32 GlPlaneView::getAnimationMs()
@@ -98,17 +98,17 @@ GlPlaneView::init(Gtk::GLArea *glArea)
     //          << std::endl;
     m_smokePlane = m_smokeContext->createGeometry(GL_TRIANGLES);
     if (auto lSmokePlane = m_smokePlane.lease()) {
-        Position p1(-10.0f, 0.0, -10.0f);   UV uv1(0.0f, 0.0f);
-        Position p2(10.0f, 0.0, -10.0f);    UV uv2(1.0f, 0.0f);
-        Position p3(10.0f, 0.0, 10.0f);     UV uv3(1.0f, 1.0f);
-        Position p4(-10.0f, 0.0, 10.0f);    UV uv4(0.0f, 1.0f);
+        Position p1(-10.0f, 0.0, -11.0f);   UV uv1(0.0f, 0.0f);
+        Position p2(10.0f, 0.0, -11.0f);    UV uv2(1.0f, 0.0f);
+        Position p3(10.0f, 10.0, -11.0f);     UV uv3(1.0f, 1.0f);
+        Position p4(-10.0f, 10.0, -11.0f);    UV uv4(0.0f, 1.0f);
         lSmokePlane->addPoint(&p1, nullptr, nullptr, &uv1);
         lSmokePlane->addPoint(&p2, nullptr, nullptr, &uv2);
         lSmokePlane->addPoint(&p3, nullptr, nullptr, &uv3);
         lSmokePlane->addPoint(&p4, nullptr, nullptr, &uv4);
         lSmokePlane->addIndex(0, 1, 2);
         lSmokePlane->addIndex(2, 3, 0);
-        lSmokePlane->setScalePos(-12.0f, 0.0f, 0.0f, 1.0f);
+        lSmokePlane->setScalePos(0.0f, 0.0f, 0.0f, 1.0f);
         lSmokePlane->create_vao();
         psc::gl::checkError("smoke createVao");
     }
@@ -241,9 +241,7 @@ GlPlaneView::draw(Gtk::GLArea *glArea, Matrix &proj, Matrix &view)
     }
     m_planeContext->display(projView, m_objGeo);
     m_planeContext->unuse();
-
-
-    if (PlaneContext::showSmokeShader) {
+    if (isShowShader()) {
         m_smokeContext->use();
         psc::gl::checkError("useSmokeCtx");
 
@@ -315,6 +313,10 @@ GlPlaneView::setModelFile(const Glib::RefPtr<Gio::File>& modelFile)
         try {
             auto objLoader = std::make_shared<psc::gl::ObjLoader>();
             objLoader->load(m_modelFile);
+            for (size_t i = 0; i < objLoader->getItems(); ++i) {
+                auto item = objLoader->getItem(i);
+                item->triangulate(m_planeContext);
+            }
             m_objLoader = std::move(objLoader);
         }
         catch (const psc::gl::ObjException& exc) {
@@ -335,6 +337,15 @@ GlPlaneView::setModelAnimSpeed(double modelAnimationSpeed)
     m_modelAnimationSpeed = modelAnimationSpeed;
 }
 
+bool GlPlaneView::isShowShader()
+{
+    return m_showShader;
+}
+
+void GlPlaneView::setShowShader(bool showShader)
+{
+    m_showShader = showShader;
+}
 
 void
 GlPlaneView::doActivateModel()
@@ -367,6 +378,7 @@ GlPlaneView::saveConfig(const std::shared_ptr<KeyConfig>& keyConfig)
                             ?  getModelFile()->get_parse_name()
                                : "");
     keyConfig->setDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MODEL_ANIM_SPEED, m_modelAnimationSpeed);
+    keyConfig->setBoolean(GlSceneWindow::MAIN_SECTION, GlSceneWindow::SHOW_SHADER, m_showShader);
 }
 
 void
@@ -381,4 +393,5 @@ GlPlaneView::restoreConfig(const std::shared_ptr<KeyConfig>& keyConfig)
                     ? Glib::RefPtr<Gio::File>()
                     : Gio::File::create_for_parse_name(filePath));
     m_modelAnimationSpeed = keyConfig->getDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MODEL_ANIM_SPEED, 1.0);
+    m_showShader = keyConfig->getBoolean(GlSceneWindow::MAIN_SECTION, GlSceneWindow::SHOW_SHADER, false);
 }

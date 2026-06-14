@@ -35,7 +35,6 @@ public:
 
     void updateLocation() override;
 
-    static constexpr auto showSmokeShader{false}; // enable/disable test shader display
 private:
     GLint m_screen{};
     GLint m_lineWidth{};

@@ -51,6 +51,8 @@ public:
     void setModelFile(const Glib::RefPtr<Gio::File>& modelFile);
     double getModelAnimSpeed();
     void setModelAnimSpeed(double modelAnimationSpeed);
+    bool isShowShader();
+    void setShowShader(bool showShader);
     void saveConfig(const std::shared_ptr<KeyConfig>& keyConfig);
     void restoreConfig(const std::shared_ptr<KeyConfig>& keyConfig);
 protected:
@@ -75,4 +77,5 @@ private:
     std::string m_movement;
     Glib::RefPtr<Gio::File> m_modelFile;
     double m_modelAnimationSpeed;
+    bool m_showShader;
 };

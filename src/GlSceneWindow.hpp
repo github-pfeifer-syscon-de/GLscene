@@ -70,6 +70,7 @@ public:
     static constexpr auto MOVEMENT_KEY{"movement"};
     static constexpr auto MODEL_FILE_KEY{"modelFile"};
     static constexpr auto MODEL_ANIM_SPEED{"modelAnimSpeed"};
+    static constexpr auto SHOW_SHADER{"showShader"};
 private:
     GlSceneApp* m_application;
     GlPlaneView* m_planView{nullptr};

@@ -77,6 +77,9 @@ public:
     void addNorm(const Vector& norm);
     void addUV(const UV& uv);
     void addVertex(std::vector<ObjIdx>& vertices);
+    // reduces the work done when getGeometry will be called
+    void triangulate(GeometryContext *m_ctx);
+    // this needs to be done with active gl_context
     psc::gl::aptrGeom2 getGeometry(GeometryContext *m_ctx);
     size_t getPosBase();
     size_t getNormBase();
@@ -111,7 +114,10 @@ private:
 
 using PtrObjItem = std::shared_ptr<ObjItem>;
 
-// serves as reference on callback
+/**
+ * serves as reference on callback
+ *   static -> object adapter
+ **/
 struct ObjTessRef
 {
     ObjTessRef(ObjTessCallback* tessCallback, size_t ctx);
@@ -131,11 +137,11 @@ public:
 
     Vector calculateNormal(const std::vector<ObjIdx>& polygon, const std::vector<Position>& pos);
     void normal(const Vector& norm);
-    /* the tesselator is sensitive to memory issues
+    /**
+     * the tesselator is sensitive to memory issues
      * (keep the values around while poly is active)
-     * -> give a reasonable value for vertexCnt
-     *   or things may get weired later ...
-     */
+     * -> give a reasonable value for vertexCnt or things may get weired later ...
+     **/
     void beginPolygon(size_t vertexCnt);
     void endPolygon();
     void beginContour();

@@ -14,7 +14,8 @@ with fft-conversion
 == Shader display ==
 
 This may also be used for some shader experiment
-(use PlaneContext::showSmokeShader (i know the naming is questionable at best...)).
+(decide yourself if this is effect is worth the effort
+  -> depends on how capable your graphics card is).
 
 To vary the display other shaders obtained from:
 https://www.shadertoy.com/
