@@ -55,10 +55,13 @@ public:
     void setShowShader(bool showShader);
     void saveConfig(const std::shared_ptr<KeyConfig>& keyConfig);
     void restoreConfig(const std::shared_ptr<KeyConfig>& keyConfig);
+    static constexpr auto MOVE_BACKWARD = "B";
+    static constexpr auto MOVE_FORWARD = "F";
+    static constexpr auto FREQ_LINEAR = "L";
+    static constexpr auto FREQ_LOGARITHMIC = "O";
 protected:
     static constexpr auto USE_TRANSPARENCY{true};
     void doActivateModel();
-
 private:
     NaviGlArea *m_naviGlArea;
     PlaneContext* m_planeContext{};

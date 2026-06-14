@@ -116,7 +116,7 @@ PlaneGeometry::restoreConfig()
     setScale(m_keyConfig->getDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::SCALE_KEY, 1.0));
     setKeepSum(m_keyConfig->getBoolean(GlSceneWindow::MAIN_SECTION, GlSceneWindow::KEEP_SUM_KEY, false));
     setAudioUsageRate(m_keyConfig->getDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::FREQ_USE_KEY, 0.5));
-    setScaleMode(m_keyConfig->getString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::FREQ_SCALE_MODE_KEY, "L"));
+    setScaleMode(m_keyConfig->getString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::FREQ_SCALE_MODE_KEY, GlPlaneView::FREQ_LINEAR));
 }
 
 std::vector<double>
@@ -161,7 +161,7 @@ PlaneGeometry::buildValues()
     if (m_audioListener) {
         m_audioListener->notifyAudio(m_spec->getVector());
     }
-    if (m_scaleMode == "O") {
+    if (m_scaleMode == GlPlaneView::FREQ_LOGARITHMIC) {
         values = m_spec->adjustLog(PLANE_TILES, m_audioUsageRate, m_scale, m_keepSum);
     }
     else {

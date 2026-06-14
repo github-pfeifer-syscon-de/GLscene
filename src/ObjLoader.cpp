@@ -372,62 +372,31 @@ ObjItem::tesselateGlu()
               << " added " << m_added << std::endl;
 }
 
-void
-ObjItem::addPoint(const ObjIdx& objIdx, Geom2* geom)
-{
-    auto itemNorm = m_norm[objIdx.norm];
-    itemNorm.y += -1.0f;
-    auto& itemPos = m_pos[objIdx.pos];
-    Color c{0.7f, 0.7f, 1.0f};
-    geom->addPoint(&itemPos, &c, &itemNorm);
-}
-
-void
-ObjItem::addTriangle(const ObjIdx& objIdx0,const ObjIdx& objIdx1,const ObjIdx& objIdx2, Geom2* geom)
-{
-    auto& itemPos0 = m_pos[objIdx0.pos];
-    auto& itemPos1 = m_pos[objIdx1.pos];
-    auto& itemPos2 = m_pos[objIdx2.pos];
-    Color c{0.7f, 0.7f, 1.0f};
-    // these look correct
-    Vector itemNorm = glm::normalize(
-                        glm::cross(itemPos2 - itemPos0, itemPos1 - itemPos0));
-    geom->addPoint(&itemPos0, &c, &itemNorm);
-    geom->addPoint(&itemPos1, &c, &itemNorm);
-    geom->addPoint(&itemPos2, &c, &itemNorm);
-}
-
-
 // simple version, even when leaving some the 5er+ vertexs this looks plausible ...
-//  use -> export triangulated? -> files will be substantially larger ???
+//  use -> e.g. export triangulated -> files will be substantially larger
 void
 ObjItem::tesselate()
 {
     if (auto lgeo = m_geom.lease()) {
-        Geom2* objGeom = m_geom.get();
         for (size_t i = 0; i < m_vertex.size(); ++i) {
             const auto& indexes = m_vertex[i];
             std::cout << "Obj new vertex  " << i << "/" << m_vertex.size() << std::endl;
 
             if (indexes.size() >= 3) {
-                addTriangle(indexes[0]
-                        , indexes[1]
-                        , indexes[2]
-                        , objGeom);
+                addVertex(indexes[0], lgeo);
+                addVertex(indexes[1], lgeo);
+                addVertex(indexes[2], lgeo);
             }
-            if (indexes.size() >= 4) {
-                addTriangle(indexes[0]
-                        , indexes[2]
-                        , indexes[3]
-                        , objGeom);
-            }
-            if (indexes.size() >= 5) {
-                addTriangle(indexes[0]
-                        , indexes[3]
-                        , indexes[4]
-                        , objGeom);
-            }
-
+            //if (indexes.size() >= 4) {  // the following are wild guesses ...
+            //    addVertex(indexes[0], lgeo);
+            //    addVertex(indexes[2], lgeo);
+            //    addVertex(indexes[3], lgeo);
+            //}
+            //if (indexes.size() >= 5) {
+            //    addVertex(indexes[0], lgeo);
+            //    addVertex(indexes[3], lgeo);
+            //    addVertex(indexes[4], lgeo);
+            //}
         }
     }
 }
@@ -438,7 +407,7 @@ ObjItem::triangulate(GeometryContext *ctx)
     if (!m_geom) {
         std::lock_guard<std::mutex> lock(m_MutexObj); // this allows only one instance at a time
         m_geom = psc::mem::make_active<psc::gl::Geom2>(GL_TRIANGLES, ctx);
-        //tesselate(); // -> simple version to verify use when obj was exported tiangulated
+        //tesselate();
         tesselateGlu();
     }
 }

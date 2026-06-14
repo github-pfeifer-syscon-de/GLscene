@@ -98,10 +98,10 @@ GlPlaneView::init(Gtk::GLArea *glArea)
     //          << std::endl;
     m_smokePlane = m_smokeContext->createGeometry(GL_TRIANGLES);
     if (auto lSmokePlane = m_smokePlane.lease()) {
-        Position p1(-10.0f, 0.0, -11.0f);   UV uv1(0.0f, 0.0f);
-        Position p2(10.0f, 0.0, -11.0f);    UV uv2(1.0f, 0.0f);
-        Position p3(10.0f, 10.0, -11.0f);     UV uv3(1.0f, 1.0f);
-        Position p4(-10.0f, 10.0, -11.0f);    UV uv4(0.0f, 1.0f);
+        Position p1(-10.0f, 0.0, -12.0f);   UV uv1(0.0f, 0.0f);
+        Position p2(10.0f, 0.0, -12.0f);    UV uv2(1.0f, 0.0f);
+        Position p3(10.0f, 10.0, -12.0f);     UV uv3(1.0f, 1.0f);
+        Position p4(-10.0f, 10.0, -12.0f);    UV uv4(0.0f, 1.0f);
         lSmokePlane->addPoint(&p1, nullptr, nullptr, &uv1);
         lSmokePlane->addPoint(&p2, nullptr, nullptr, &uv2);
         lSmokePlane->addPoint(&p3, nullptr, nullptr, &uv3);
@@ -169,9 +169,11 @@ GlPlaneView::unrealize()
 {
     if (m_planeContext) {
         delete m_planeContext;
+        m_planeContext = nullptr;
     }
     if (m_smokeContext){
         delete m_smokeContext;
+        m_smokeContext = nullptr;
     }
 }
 
@@ -227,19 +229,21 @@ GlPlaneView::draw(Gtk::GLArea *glArea, Matrix &proj, Matrix &view)
     if (m_objLoader) {
         doActivateModel();  // keep this in display loop so gl-ctx is active
     }
-    auto t = (float)((double)time * m_modelAnimationSpeed / 1.0e6);
-    for (auto geo : m_objGeo) {
-        if (auto lgeo = geo.lease()) {
-            auto sint = std::sinf(t);
-            auto rot = lgeo->getRotation();
-            Rotational next(rot.getPhi(), rot.getTheta(), sint * 45.0f /* rot.getPsi()*/);
-            lgeo->setRotation(next);
-            auto pos = lgeo->getPosition();
-            pos.x = sint * 5.0f;
-            lgeo->setPosition(pos);
+    if (!m_objGeo.empty()) {
+        auto t = (float)((double)time * m_modelAnimationSpeed / 1.0e6);
+        auto sint = std::sinf(t);
+        for (auto geo : m_objGeo) {
+            if (auto lgeo = geo.lease()) {
+                auto rot = lgeo->getRotation();
+                Rotational next(rot.getPhi(), rot.getTheta(), sint * 45.0f /* rot.getPsi()*/);
+                lgeo->setRotation(next);
+                auto pos = lgeo->getPosition();
+                pos.x = sint * 5.0f;
+                lgeo->setPosition(pos);
+            }
         }
+        m_planeContext->display(projView, m_objGeo);
     }
-    m_planeContext->display(projView, m_objGeo);
     m_planeContext->unuse();
     if (isShowShader()) {
         m_smokeContext->use();
@@ -288,15 +292,15 @@ void
 GlPlaneView::setMovement(const std::string& movement)
 {
     if (m_movement != movement) {
+        m_movement = movement;
         auto keyConfig = m_glSceneWindow->getKeyConfig();
-        if (m_movement == "B") {
+        if (m_movement == MOVE_BACKWARD) {
             m_planePane = std::make_shared<BackwardPlaneGeometry>(m_planeContext, keyConfig);
         }
         else {
             m_planePane = std::make_shared<ForwardPlaneGeometry>(m_planeContext, keyConfig);
         }
     }
-    m_movement = movement;
 }
 
 Glib::RefPtr<Gio::File>
@@ -385,7 +389,7 @@ void
 GlPlaneView::restoreConfig(const std::shared_ptr<KeyConfig>& keyConfig)
 {
     // keep this as first as the remaing depends on this
-    setMovement(keyConfig->getString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MOVEMENT_KEY, "F"));
+    setMovement(keyConfig->getString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MOVEMENT_KEY, MOVE_FORWARD));
     auto planGeom = getPlaneGeometry();
     planGeom->restoreConfig();
     auto filePath = keyConfig->getString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MODEL_FILE_KEY,  "");

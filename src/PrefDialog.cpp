@@ -56,15 +56,15 @@ PrefDialog::PrefDialog(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
         m_sceneWindow->getPlaneGeometry()->setAudioUsageRate(m_freqUsage->get_value());
     });
     builder->get_widget("freqMode", m_freqMode);
-    m_freqMode->append("L", "Linear");
-    m_freqMode->append("O", "Logarithmic");
+    m_freqMode->append(GlPlaneView::FREQ_LINEAR, "Linear");
+    m_freqMode->append(GlPlaneView::FREQ_LOGARITHMIC, "Logarithmic");
     m_freqMode->set_active_id(m_sceneWindow->getPlaneGeometry()->getScaleMode());
     m_freqMode->signal_changed().connect([this] {
         m_sceneWindow->getPlaneGeometry()->setScaleMode(m_freqMode->get_active_id());
     });
     builder->get_widget("movement", m_movement);
-    m_movement->append("F", "Forward");
-    m_movement->append("B", "Backward");
+    m_movement->append(GlPlaneView::MOVE_FORWARD, "Forward");
+    m_movement->append(GlPlaneView::MOVE_BACKWARD, "Backward");
     m_movement->set_active_id(m_sceneWindow->getPlaneView()->getMovement());
     m_movement->signal_changed().connect([this] {
         m_sceneWindow->getPlaneView()->setMovement(m_movement->get_active_id());

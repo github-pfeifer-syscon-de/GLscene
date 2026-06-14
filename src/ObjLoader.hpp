@@ -90,8 +90,6 @@ public:
     std::string getInfo();
 protected:
     void tesselateGlu();
-    void addTriangle(const ObjIdx& objIdx0,const ObjIdx& objIdx1,const ObjIdx& objIdx2, Geom2* geom);
-    void addPoint(const ObjIdx& objIdx, Geom2* geom);
     void tesselate();
     void addVertex(const ObjIdx& objIdx, psc::mem::active_lease<psc::gl::Geom2>& lgeo);
 
