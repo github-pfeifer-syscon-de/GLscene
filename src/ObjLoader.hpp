@@ -93,6 +93,7 @@ protected:
     void addTriangle(const ObjIdx& objIdx0,const ObjIdx& objIdx1,const ObjIdx& objIdx2, Geom2* geom);
     void addPoint(const ObjIdx& objIdx, Geom2* geom);
     void tesselate();
+    void addVertex(const ObjIdx& objIdx, psc::mem::active_lease<psc::gl::Geom2>& lgeo);
 
 private:
     std::string m_name;
@@ -109,7 +110,9 @@ private:
     ObjIdx m_idxLast[2];
     size_t m_objLastIndex;
     PtrObjMaterial m_activeMaterial;
-
+    std::map<uint32_t, uint32_t> m_usedIndexes;
+    uint32_t m_added{};
+    uint32_t m_indexed{};
 };
 
 using PtrObjItem = std::shared_ptr<ObjItem>;

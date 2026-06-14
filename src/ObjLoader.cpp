@@ -263,26 +263,47 @@ ObjItem::setActiveMaterial(const PtrObjMaterial& activeMaterial)
     m_activeMaterial = activeMaterial;
 }
 
+// use indexed geometry
+void
+ObjItem::addVertex(const ObjIdx& objIdx, psc::mem::active_lease<psc::gl::Geom2>& lgeo)
+{
+    // each value will use only 16Bit, presume constant color
+    uint32_t idx = objIdx.pos << 16 | objIdx.norm;
+    auto pos = m_usedIndexes.find(idx);
+    uint32_t geoIdx;
+    if (pos == m_usedIndexes.end()) {
+        size_t idxPos = objIdx.pos;
+        const auto& pos = m_pos[idxPos];
+        size_t idxNorm = objIdx.norm;
+        auto objNormal = m_norm[idxNorm];
+        objNormal.y *= -1.0f;    // this brightens our picture
+        Color c{0.5f, 0.5f, 0.5f};
+        if (m_activeMaterial) {
+            c = m_activeMaterial->getDiffuseColor();
+        }
+        geoIdx = lgeo->getVertexIndex();
+        lgeo->addPoint(&pos, &c, &objNormal);
+        m_usedIndexes.insert(std::pair(idx, geoIdx));
+        ++m_indexed;
+    }
+    else {
+        geoIdx = pos->second;
+    }
+    ++m_added;
+    lgeo->addIndex(geoIdx);
+}
+
 void
 ObjItem::tessCallback(size_t index, GLenum objTess)
 {
     //std::cout << "ObjItem::tessCallback" << m_vertexIdx << " "  << index << std::endl;
     const auto& indexes = m_vertex[m_vertexIdx];
     auto& objIdx = indexes[index];
-    size_t idxPos = objIdx.pos;
-    const auto& pos = m_pos[idxPos];
-    size_t idxNorm = objIdx.norm;
-    auto objNormal = m_norm[idxNorm];
-    objNormal.y *= -1.0f;    // this brightens our picture
-    Color c{0.5f, 0.5f, 0.5f};
-    if (m_activeMaterial) {
-        c = m_activeMaterial->getDiffuseColor();
-    }
     if (auto lgeo = m_geom.lease()) {
         switch(objTess) {
         case GL_TRIANGLES :
             //std::cout << "Tess tri " << pos.x << " " << pos.y << " " << pos.z << std::endl;
-            lgeo->addPoint(&pos, &c, &objNormal);
+            addVertex(objIdx, lgeo);
             break;
         case GL_TRIANGLE_FAN:   // to use uniform geometry convert to triangles
             //std::cout << "Tess triFan " << pos.x << " " << pos.y << " " << pos.z << std::endl;
@@ -291,21 +312,9 @@ ObjItem::tessCallback(size_t index, GLenum objTess)
                 ++m_objLastIndex;
             }
             else {
-                size_t idxPos0 = m_idxLast[0].pos;
-                const auto& pos0 = m_pos[idxPos0];
-                size_t idxNorm0 = m_idxLast[0].norm;
-                auto normal0 = m_norm[idxNorm0];
-                normal0 *= -1.0f;
-                lgeo->addPoint(&pos0, &c, &normal0);
-
-                size_t idxPos1 = m_idxLast[1].pos;
-                const auto& pos1 = m_pos[idxPos1];
-                size_t idxNorm1 = m_idxLast[1].norm;
-                auto normal1 = m_norm[idxNorm1];
-                normal1 *= -1.0f;
-                lgeo->addPoint(&pos1, &c, &normal1);
-                lgeo->addPoint(&pos, &c, &objNormal);
-
+                addVertex(m_idxLast[0], lgeo);
+                addVertex(m_idxLast[1], lgeo);
+                addVertex(objIdx, lgeo);
                 // with a fan point 0 stays
                 m_idxLast[1] = objIdx;
             }
@@ -317,22 +326,9 @@ ObjItem::tessCallback(size_t index, GLenum objTess)
                 ++m_objLastIndex;
             }
             else {
-                size_t idxPos0 = m_idxLast[0].pos;
-                const auto& pos0 = m_pos[idxPos0];
-                size_t idxNorm0 = m_idxLast[0].norm;
-                auto normal0 = m_norm[idxNorm0];
-                normal0 *= -1.0f;
-                lgeo->addPoint(&pos0, &c, &normal0);
-
-                size_t idxPos1 = m_idxLast[1].pos;
-                const auto& pos1 = m_pos[idxPos1];
-                size_t idxNorm1 = m_idxLast[1].norm;
-                auto normal1 = m_norm[idxNorm1];
-                normal1 *= -1.0f;
-                lgeo->addPoint(&pos1, &c, &normal1);
-
-                lgeo->addPoint(&pos, &c, &objNormal);
-
+                addVertex(m_idxLast[0], lgeo);
+                addVertex(m_idxLast[1], lgeo);
+                addVertex(objIdx, lgeo);
                 m_idxLast[0] = m_idxLast[1];
                 m_idxLast[1] = objIdx;
             }
@@ -353,11 +349,8 @@ ObjItem::tesselateGlu()
     for (size_t i = 0; i < m_vertex.size(); ++i) {
         m_vertexIdx = i;
         const auto& indexes = m_vertex[i];
-        std::cout << "Obj new vertex  " << i << "/" << m_vertex.size()
-                  << " indexes " << indexes.size() << std::endl;
-        //std::map<uint64_t, uint32_t> used;
-        //size_t geoIdxPrevPrev{};
-        //size_t geoIdxPrev{};
+        //std::cout << "ObjItem new vertex  " << i << "/" << m_vertex.size()
+        //          << " indexes " << indexes.size() << std::endl;
         if (indexes.size() > 1) {
             [[maybe_unused]] auto norm = objTessy.calculateNormal(indexes, m_pos);
             //std::cout << "Norm " << " " <<  norm.x << " " << norm.y << " " << norm.z << std::endl;
@@ -373,27 +366,10 @@ ObjItem::tesselateGlu()
             objTessy.endContour();  // vertex will be closed by default
             objTessy.endPolygon();
         }
-        //else {
-        //    std::cout << "Unhanded vertex count " << indexes.size() << std::endl;
-        //}
-
-        //for (size_t i = 0; i < indexes.size(); ++i) {   // step tru the vertex
-        //if (pos == used.end()) {
-        //    Vector n{itemNorm[0], itemNorm[1], itemNorm[2]};
-        //    geoIdx = lgeo->getNumVertex();
-        //    Color c{0.0f, 0.0f, 1.0f};
-        //    lgeo->addPoint(&p, &c, &n);
-        //    used.insert(std::pair(usedIdx, geoIdx));
-        //}
-        //else {
-        //    geoIdx = pos->second;
-        //}
-
-        //lgeo->addIndex(geoIdx);
-        //geoIdxPrevPrev = geoIdxPrev;
-        //geoIdxPrev = geoIdx;
-
     }
+    std::cout << "ObjItem"
+              << " indexed " << m_indexed
+              << " added " << m_added << std::endl;
 }
 
 void

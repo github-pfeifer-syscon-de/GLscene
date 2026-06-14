@@ -1,5 +1,5 @@
 project('glscene', 'c', 'cpp'
-    , default_options: ['c_std=gnu11'
+    , default_options: ['c_std=gnu17'
                        , 'cpp_std=c++20'
                        , 'buildtype=debugoptimized'
                        , 'warning_level=3']
@@ -41,7 +41,6 @@ pulse_deps      = dependency('alsa libpulse libpulse-mainloop-glib')
 fftw_deps       = dependency('fftw3')
 genericimg_deps = dependency('genericimg', version :'>= 0.4.0')
 genericglm_deps = dependency('genericglm', version :'>= 0.3.1')
-openssl_deps    = dependency('openssl')
 if target_machine.system() == 'windows'
     glu_deps = cc.find_library('glu32', required: true)
 else

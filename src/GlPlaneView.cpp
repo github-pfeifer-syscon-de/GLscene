@@ -46,7 +46,7 @@ GlPlaneView::~GlPlaneView()
 Position
 GlPlaneView::getIntialPosition()
 {
-    return Position(0.0f,12.0f,12.0f);
+    return Position(0.0f,12.0f,16.0f);
 }
 
 Rotational
