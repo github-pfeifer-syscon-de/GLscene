@@ -80,7 +80,17 @@ PrefDialog::PrefDialog(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     fileFilter->set_name("Obj");
     m_fileChooser->set_filter(fileFilter);
     m_fileChooser->signal_file_set().connect([this] {
-        m_sceneWindow->getPlaneView()->setModelFile(m_fileChooser->get_file());
+        auto file = m_fileChooser->get_file();
+        m_sceneWindow->getPlaneView()->setModelFile(file);
+        m_displayModel->set_active(file.operator bool() && file->query_exists());
+    });
+    builder->get_widget("displayModel", m_displayModel);
+    m_displayModel->set_active(file.operator bool() );
+    m_displayModel->signal_toggled().connect([this] {
+        m_sceneWindow->getPlaneView()->setModelFile(
+                    m_displayModel->get_active()
+                            ? m_fileChooser->get_file()
+                            : Glib::RefPtr<Gio::File>());
     });
     builder->get_widget("modelAnimSpeed", m_modelAnimSpeed);
     m_modelAnimSpeed->set_value(m_sceneWindow->getPlaneView()->getModelAnimSpeed());

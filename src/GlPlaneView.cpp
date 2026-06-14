@@ -226,7 +226,8 @@ GlPlaneView::draw(Gtk::GLArea *glArea, Matrix &proj, Matrix &view)
         glDisable(GL_BLEND);
         //glEnable(GL_DEPTH_TEST);
     }
-    if (m_objLoader) {
+    if (m_updateModel) {
+        m_updateModel = false;
         doActivateModel();  // keep this in display loop so gl-ctx is active
     }
     if (!m_objGeo.empty()) {
@@ -327,6 +328,7 @@ GlPlaneView::setModelFile(const Glib::RefPtr<Gio::File>& modelFile)
             m_glSceneWindow->show_error(exc.what());
         }
     }
+    m_updateModel = true;
 }
 
 double
@@ -356,7 +358,6 @@ GlPlaneView::doActivateModel()
 {
     m_objGeo.clear();
     if (m_objLoader) {
-        std::list<psc::gl::aptrGeom2> objGeo;
         for (size_t i = 0; i < m_objLoader->getItems(); ++i) {
             auto item = m_objLoader->getItem(i);
             auto geo = item->getGeometry(m_planeContext);
@@ -365,10 +366,9 @@ GlPlaneView::doActivateModel()
                 Position pos{0.0f, 3.0f, -5.0f};
                 lgeo->setPosition(pos);
             }
-            objGeo.push_back(geo);
+            m_objGeo.push_back(geo);
         }
         m_objLoader.reset();
-        m_objGeo = objGeo;
     }
 }
 
@@ -378,7 +378,8 @@ GlPlaneView::saveConfig(const std::shared_ptr<KeyConfig>& keyConfig)
     auto planGeom = getPlaneGeometry();
     planGeom->saveConfig();
     keyConfig->setString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MOVEMENT_KEY, getMovement());
-    keyConfig->setString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MODEL_FILE_KEY, getModelFile()
+    keyConfig->setString(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MODEL_FILE_KEY,
+                    getModelFile()
                             ?  getModelFile()->get_parse_name()
                                : "");
     keyConfig->setDouble(GlSceneWindow::MAIN_SECTION, GlSceneWindow::MODEL_ANIM_SPEED, m_modelAnimationSpeed);

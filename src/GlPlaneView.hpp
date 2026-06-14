@@ -73,6 +73,7 @@ private:
     psc::mem::active_ptr<psc::gl::Text2> m_text3;
     std::shared_ptr<psc::gl::ObjLoader> m_objLoader;
     std::list<psc::gl::aptrGeom2> m_objGeo;
+    bool m_updateModel{false};
     SmokeContext* m_smokeContext{};
     psc::mem::active_ptr<psc::gl::Geom2> m_smokePlane;
     Gtk::Application* m_application;
